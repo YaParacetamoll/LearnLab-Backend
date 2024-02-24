@@ -9,6 +9,7 @@ $db = new MysqliDb(array(
     'db' => $_SERVER['DB_DATABASE'],
     'port' => $_SERVER['DB_PORT']
 ));
+echo "test";
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     $courses = $db->get('courses');
