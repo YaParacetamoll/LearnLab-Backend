@@ -6,7 +6,7 @@ try {
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'GET':
             $output = array();
-            $page = isset($_GET["page"]) ? intval($_GET["page"]) : 1;
+            $page = isset($_GET["page"]) ? (intval($_GET["page"]) <= 0 ? 1 : (intval($_GET["page"]))) : 1;
             $db->pageLimit = isset($_GET["limit"]) ? intval($_GET["limit"]) : 10;
             $courses = $db->arraybuilder()->paginate("courses", $page);
             $output["page"] = $page;
