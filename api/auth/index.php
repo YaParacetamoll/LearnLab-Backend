@@ -13,8 +13,8 @@ try {
                 ));
             } else {
                 parse_str(file_get_contents('php://input'), $_PUT);
-                if (key_exists("u_firstname", $_PUT) && key_exists("u_lastname", $_PUT) && key_exists("u_tel", $_PUT) && key_exists("u_email", $_PUT) && key_exists("u_gender", $_PUT) && key_exists("u_role", $_PUT)) {
-                    $hash_password = key_exists("u_hashed_password", $_PUT) ? password_hash($_PUT["u_hashed_password"], PASSWORD_DEFAULT) : NULL;
+                if (key_exists("u_firstname", $_PUT) && key_exists("u_lastname", $_PUT) && key_exists("u_tel", $_PUT) && key_exists("u_email", $_PUT) && key_exists("u_password", $_PUT) && key_exists("u_gender", $_PUT) && key_exists("u_role", $_PUT)) {
+                    $hash_password = password_hash($_PUT["u_hashed_password"], PASSWORD_DEFAULT);
                     $data = array(
                         "u_firstname" => $_PUT["u_firstname"],
                         "u_lastname" => $_PUT["u_lastname"],
