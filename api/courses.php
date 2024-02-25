@@ -26,9 +26,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
         parse_str(file_get_contents('php://input'), $_PUT);
         if (key_exists("c_name", $_PUT) && key_exists("c_description", $_PUT) && key_exists("c_privacy", $_PUT)) {
             $c_code = bin2hex(random_bytes(4));
+            $hash_password = key_exists("c_hashed_password", $_PUT) ? password_hash($_PUT["c_hashed_password"], PASSWORD_DEFAULT) : NULL;
             $data = array(
                 "c_name" => $_PUT["c_name"],
                 "c_code" => $c_code,
+                "c_hashed_password" => $hash_password,
                 "c_description" => $_PUT["c_description"]
             );
             $id = $db->insert('courses', $data);
