@@ -53,3 +53,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
         }
     }
 }
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (isset($_POST) && key_exists("u_email", $_POST) && key_exists("u_password", $_POST)) {
+        $db->where("u_email", $_POST['u_email']);
+        $user = $db->getOne("users");
+        if ($db->count > 0 && password_verify($_POST['u_password'], $user['u_hashed_password'])) {
+            echo json_encode(array(
+                "status" => http_response_code(),
+                "message" => "Authentication success"
+            ));
+        } else {
+            http_response_code(400);
+            echo json_encode(array(
+                "status" => http_response_code(),
+                "message" => "Authentication failed"
+            ));
+        }
+    } else {
+        http_response_code(400);
+        echo json_encode(array(
+            "status" => http_response_code(),
+            "message" => "Invalid input"
+        ));
+    }
+}
