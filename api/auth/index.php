@@ -1,6 +1,6 @@
 <?php
-require_once '../vendor/autoload.php';
-require_once '../initialize.php';
+require_once '../../vendor/autoload.php';
+require_once '../../initialize.php';
 
 try {
     switch ($_SERVER['REQUEST_METHOD']) {
