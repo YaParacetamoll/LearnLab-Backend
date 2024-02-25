@@ -10,7 +10,6 @@ $db = new MysqliDb(array(
     'port' => $_SERVER['DB_PORT']
 ));
 
-
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     header('Access-Control-Allow-Origin: *');
     header('Access-Control-Allow-Methods: POST, GET, DELETE, PUT, PATCH, OPTIONS');
@@ -26,8 +25,15 @@ header('Content-Type: application/json; charset=utf-8');
 
 switch ($_SERVER['REQUEST_METHOD']) {
     case 'GET':
-        $courses = $db->get('courses');
-        echo json_encode($courses);
+        $output = array();
+        $page = isset($_GET["page"]) ? $_GET["page"] : 1;
+        $db->pageLimit = isset($_GET["limit"]) ? $_GET["limit"] : 10;
+        $courses = $db->arraybuilder()->paginate("courses", $page);
+        $output["page"] = $page;
+        $output["limit"] = $db->pageLimit;
+        $output["total_page"] = $db->totalPages;
+        $output["data"] = $courses;
+        echo json_encode($output, JSON_NUMERIC_CHECK);
         break;
     case 'PUT':
         if (file_get_contents('php://input') == null) {
