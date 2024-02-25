@@ -3,7 +3,6 @@ require_once '../vendor/autoload.php';
 require_once '../initialize.php';
 
 try {
-
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'PUT':
             if (file_get_contents('php://input') == null) {
@@ -72,7 +71,13 @@ try {
                 ));
             }
             break;
+        default:
+        echo json_encode(array(
+            "status" => http_response_code(),
+            "message" => ""
+        ));
         }
+
         
     }
     catch (Exception $e) {

@@ -86,6 +86,11 @@ try {
                 }
             }
             break;
+            default:
+            echo json_encode(array(
+                "status" => http_response_code(),
+                "message" => ""
+            ));
     }
 } catch (Exception $e) {
     http_response_code(500);
