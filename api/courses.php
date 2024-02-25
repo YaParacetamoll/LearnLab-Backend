@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
             if ($id) {
                 echo json_encode(array(
                     "status" => 200,
-                    "message" => 'Courses was created successfully! Id = ' . $id
+                    "message" => 'Course was created successfully! Id = ' . $id
                 ));
             } else {
                 http_response_code(400);
