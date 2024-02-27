@@ -8,6 +8,8 @@ try {
             $output = array();
             $page = isset($_GET["page"]) ? (intval($_GET["page"]) <= 0 ? 1 : (intval($_GET["page"]))) : 1;
             $db->pageLimit = isset($_GET["limit"]) ? intval($_GET["limit"]) : 10;
+            if (isset($_GET["search"])) $db->where('c_name', '%' . $_GET["search"] . '%', 'LIKE');
+            $courses = $db->where('c_privacy', 'PUBLIC');
             $courses = $db->arraybuilder()->paginate("courses", $page);
             $output["page"] = $page;
             $output["limit"] = $db->pageLimit;
