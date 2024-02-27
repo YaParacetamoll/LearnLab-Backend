@@ -99,7 +99,8 @@ try {
                 ));
             } else {
                 parse_str(file_get_contents('php://input'), $_DELETE);
-                if (key_exists("u_id", $_DELETE) && key_exists("p_id", $_DELETE) && key_exists("c_id", $_DELETE)) {//รับทั้ง u_id(id ของ user ที่เข้าใช้งานอยู่), c_id(่ของ course ที่ต้องการลบ post) และ p_id(post ที่ต้องการลบ) มา
+                //รับทั้ง u_id(id ของ user ที่เข้าใช้งานอยู่), c_id(่ของ course ที่ต้องการลบ post) และ p_id(post ที่ต้องการลบ) มา
+                if (key_exists("u_id", $_DELETE) && key_exists("p_id", $_DELETE) && key_exists("c_id", $_DELETE)) {
                     $db->join("posts p", "p.u_id=e.u_id", "LEFT");
                     $db->where("p.p_id", $_DELETE['p_id']);
                     $db->where("e.c_id", $_DELETE['c_id']);
