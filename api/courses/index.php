@@ -19,11 +19,7 @@ try {
             break;
         case 'PUT':
             if (file_get_contents('php://input') == null) {
-                http_response_code(400);
-                echo json_encode(array(
-                    "status" => http_response_code(),
-                    "message" => "Invalid input"
-                ));
+                echo jsonResponse(400, "Invalid input");
             } else {
                 parse_str(file_get_contents('php://input'), $_PUT);
                 if (key_exists("c_name", $_PUT) && key_exists("c_description", $_PUT) && key_exists("c_privacy", $_PUT) && key_exists("c_id", $_PUT) && key_exists("u_id", $_PUT)) {
@@ -42,33 +38,18 @@ try {
                             "u_role" => "INSTRUCTOR"
                         );
                         $db->insert('enrollments', $enroll_data);
-                        echo json_encode(array(
-                            "status" => http_response_code(),
-                            "message" => 'Course was created successfully! Id = ' . $id
-                        ));
+                        echo jsonResponse(message:'Course was created successfully! Id = ' . $id);
                     } else {
-                        http_response_code(400);
-                        echo json_encode(array(
-                            "status" => http_response_code(),
-                            "message" => "Fail to create course."
-                        ));
+                        echo jsonResponse(400, "Fail to create course.");
                     }
                 } else {
-                    http_response_code(400);
-                    echo json_encode(array(
-                        "status" => http_response_code(),
-                        "message" => "Invalid input"
-                    ));
+                    echo jsonResponse(400, "Invalid input");
                 }
             }
             break;
         case 'DELETE':
             if (file_get_contents('php://input') == null) {
-                http_response_code(400);
-                echo json_encode(array(
-                    "status" => http_response_code(),
-                    "message" => "Invalid input"
-                ));
+                echo jsonResponse(400, "Invalid input");
             } else {
                 parse_str(file_get_contents('php://input'), $_DELETE);
                 if (key_exists("c_id", $_DELETE) && key_exists("u_id", $_DELETE)) {
@@ -76,45 +57,18 @@ try {
                     $role = $db->getValue("enrollments", 'u_role');
                     if ($role && $role == "INSTRUCTOR") {
                         $db->where('c_id', $_DELETE["c_id"]);
-                        if ($db->delete('courses')) {
-                            echo json_encode(array(
-                                "status" => 200,
-                                "message" => 'successfully deleted'
-                            ));
-                        } else {
-                            http_response_code(400);
-                            echo json_encode(array(
-                                "status" => http_response_code(),
-                                "message" => "fail to delete course"
-                            ));
-                        }
+                        echo ($db->delete('courses')) ? jsonResponse(message:'successfully deleted') : jsonResponse(400, "fail to delete course");
                     } else {
-                        http_response_code(400);
-                        echo json_encode(array(
-                            "status" => http_response_code(),
-                            "message" => "Permission denied"
-
-                        ));
+                        echo jsonResponse(400, "Permission denied");
                     }
                 } else {
-                    http_response_code(400);
-                    echo json_encode(array(
-                        "status" => http_response_code(),
-                        "message" => "Invalid input"
-                    ));
+                    echo jsonResponse(400, "Invalid input");
                 }
             }
             break;
         default:
-            echo json_encode(array(
-                "status" => http_response_code(),
-                "message" => ""
-            ));
+            echo jsonResponse();
     }
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(array(
-        "status" => http_response_code(),
-        "message" => $e->getMessage()
-    ));
+    echo jsonResponse(500, $e->getMessage());
 }

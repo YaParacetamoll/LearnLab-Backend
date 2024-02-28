@@ -21,4 +21,11 @@ $db = new MysqliDb(array(
     'db' => $_SERVER['DB_DATABASE'],
     'port' => $_SERVER['DB_PORT']
 ));
-?>
+
+function jsonResponse($response_code = 200, $message = "") {
+    http_response_code($response_code);
+    return json_encode(array(
+        "status" => http_response_code(),
+        "message" => $message
+    ));
+}
