@@ -71,17 +71,29 @@ try {
                 ));
             } else {
                 parse_str(file_get_contents('php://input'), $_DELETE);
-                if (key_exists("c_id", $_DELETE)) {
-                    $db->where('c_id', $_DELETE["c_id"]);
-                    if ($db->delete('courses')) echo json_encode(array(
-                        "status" => 200,
-                        "message" => 'successfully deleted'
-                    ));
-                    else {
+                if (key_exists("c_id", $_DELETE) && key_exists("u_id", $_DELETE)) {
+                    $db->where("u_id", $_DELETE['u_id']);
+                    $role = $db->getValue("enrollments", 'u_role');
+                    if ($role && $role == "INSTRUCTOR") {
+                        $db->where('c_id', $_DELETE["c_id"]);
+                        if ($db->delete('courses')) {
+                            echo json_encode(array(
+                                "status" => 200,
+                                "message" => 'successfully deleted'
+                            ));
+                        } else {
+                            http_response_code(400);
+                            echo json_encode(array(
+                                "status" => http_response_code(),
+                                "message" => "fail to delete course"
+                            ));
+                        }
+                    } else {
                         http_response_code(400);
                         echo json_encode(array(
                             "status" => http_response_code(),
-                            "message" => "fail to delete course"
+                            "message" => "Permission denied"
+
                         ));
                     }
                 } else {
