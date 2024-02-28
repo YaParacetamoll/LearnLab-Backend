@@ -26,7 +26,7 @@ try {
                 ));
             } else {
                 parse_str(file_get_contents('php://input'), $_PUT);
-                if (key_exists("c_name", $_PUT) && key_exists("c_description", $_PUT) && key_exists("c_privacy", $_PUT)) {
+                if (key_exists("c_name", $_PUT) && key_exists("c_description", $_PUT) && key_exists("c_privacy", $_PUT) && key_exists("c_id", $_PUT) && key_exists("u_id", $_PUT)) {
                     $c_code = bin2hex(random_bytes(4));
                     $hash_password = key_exists("c_hashed_password", $_PUT) ? password_hash($_PUT["c_hashed_password"], PASSWORD_DEFAULT) : NULL;
                     $data = array(
@@ -35,10 +35,15 @@ try {
                         "c_hashed_password" => $hash_password,
                         "c_description" => $_PUT["c_description"]
                     );
-                    $id = $db->insert('courses', $data);
-                    if ($id) {
+                    if ($db->insert('courses', $data)) {
+                        $enroll_data = array(
+                            "c_id" => $_PUT['c_id'],
+                            "u_id" => $_PUT['u_id'],
+                            "u_role" => "INSTRUCTOR"
+                        );
+                        $db->insert('enrollments', $enroll_data);
                         echo json_encode(array(
-                            "status" => 200,
+                            "status" => http_response_code(),
                             "message" => 'Course was created successfully! Id = ' . $id
                         ));
                     } else {
@@ -88,7 +93,7 @@ try {
                 }
             }
             break;
-            default:
+        default:
             echo json_encode(array(
                 "status" => http_response_code(),
                 "message" => ""
