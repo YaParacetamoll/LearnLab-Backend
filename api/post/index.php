@@ -58,6 +58,21 @@ try {
                 }
             }
             break;
+        case 'POST':
+            if (isset($_POST) && key_exists("p_id", $_POST)) { //ถ้าเราจะมีการแก้ไข Post ก็น่าจะประมาณนี้นะ, ไม่รู้ว่า Post item จะมีการแก้ไขยังไงได้บ้างเลย commit แบบนี้ไปก่อนละกัน 
+                $keys = array("p_title", "p_content", "p_item_list", "p_type", "p_show_time");
+                $data = array();
+                foreach ($keys as $key) {
+                    if (key_exists($key, $_POST)) {
+                        $data[$key] = $_POST[$key];
+                    }
+                }
+                $db->where("p_id", $_POST['p_id']);
+                echo ($db->update('posts', $data)) ? jsonResponse(message: "Post edited successfully") : jsonResponse(400, "Fail to edit post.");
+            } else {
+                echo jsonResponse(400, "Invalid input");
+            }
+            break;
         case 'DELETE':
             if (file_get_contents('php://input') == null) {
                 echo jsonResponse(400, "Invalid input");
