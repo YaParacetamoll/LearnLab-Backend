@@ -6,11 +6,7 @@ try {
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'PUT':
             if (file_get_contents('php://input') == null) {
-                http_response_code(400);
-                echo json_encode(array(
-                    "status" => http_response_code(),
-                    "message" => "Invalid input"
-                ));
+                echo jsonResponse(400, "Invalid input");
             } else {
                 parse_str(file_get_contents('php://input'), $_PUT);
                 if (key_exists("u_firstname", $_PUT) && key_exists("u_lastname", $_PUT) && key_exists("u_tel", $_PUT) && key_exists("u_email", $_PUT) && key_exists("u_password", $_PUT) && key_exists("u_gender", $_PUT) && key_exists("u_role", $_PUT)) {
@@ -26,65 +22,24 @@ try {
                         "u_role" => $_PUT["u_role"]
                     );
                     $id = $db->insert('users', $data);
-                    if ($id) {
-                        echo json_encode(array(
-                            "status" => 200,
-                            "message" => 'User was created successfully! Id = ' . $id
-                        ));
-                    } else {
-                        http_response_code(400);
-                        echo json_encode(array(
-                            "status" => http_response_code(),
-                            "message" => "Fail to create user."
-                        ));
-                    }
+                    echo ($id) ? jsonResponse(message: 'User was created successfully! Id = ' . $id) : jsonResponse(400, "Fail to create user.");
                 } else {
-                http_response_code(400);
-                echo json_encode(array(
-                    "status" => http_response_code(),
-                    "message" => "Invalid input"
-                ));
+                    jsonResponse(400, "Invalid input");
+                }
             }
-        }
-        break;
+            break;
         case 'POST':
             if (isset($_POST) && key_exists("u_email", $_POST) && key_exists("u_password", $_POST)) {
                 $db->where("u_email", $_POST['u_email']);
                 $user = $db->getOne("users");
-                if ($db->count > 0 && password_verify($_POST['u_password'], $user['u_hashed_password'])) {
-                    echo json_encode(array(
-                        "status" => http_response_code(),
-                        "message" => "Authentication success"
-                    ));
-                } else {
-                    http_response_code(400);
-                    echo json_encode(array(
-                        "status" => http_response_code(),
-                        "message" => "Authentication failed"
-                    ));
-                }
+                echo ($db->count > 0 && password_verify($_POST['u_password'], $user['u_hashed_password'])) ? jsonResponse(message: "Authentication success") : jsonResponse(400, "Authentication failed");
             } else {
-                http_response_code(400);
-                echo json_encode(array(
-                    "status" => http_response_code(),
-                    "message" => "Invalid input"
-                ));
+                echo jsonResponse(400, "Invalid input");
             }
             break;
         default:
-        echo json_encode(array(
-            "status" => http_response_code(),
-            "message" => ""
-        ));
-        }
-
-        
+            echo jsonResponse();
     }
-    catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(array(
-            "status" => http_response_code(),
-            "message" => $e->getMessage()
-        ));
-    }
-?>
+} catch (Exception $e) {
+    echo jsonResponse(500, $e->getMessage());
+}

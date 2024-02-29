@@ -21,27 +21,15 @@ try {
                     $output["data"] = $posts;
                     echo json_encode($output);
                 } else {
-                    http_response_code(400);
-                    echo json_encode(array(
-                        "status" => http_response_code(),
-                        "message" => "Course not found"
-                    ));
+                    echo jsonResponse(400, "User didn't have enrollment on that course");
                 }
             } else {
-                http_response_code(400);
-                echo json_encode(array(
-                    "status" => http_response_code(),
-                    "message" => "Invalid input"
-                ));
+                echo jsonResponse(400, "Invalid input");
             }
             break;
         case 'PUT':
             if (file_get_contents('php://input') == null) {
-                http_response_code(400);
-                echo json_encode(array(
-                    "status" => http_response_code(),
-                    "message" => "Invalid input"
-                ));
+                echo jsonResponse(400, "Invalid input");
             } else {
                 parse_str(file_get_contents('php://input'), $_PUT);
                 if (key_exists('c_id', $_PUT) && key_exists('u_id', $_PUT) && key_exists('p_title', $_PUT) && key_exists('p_type', $_PUT)) {
@@ -61,42 +49,18 @@ try {
                             "p_item_list" => $p_item_list,
                             "p_show_time" => $P_show_time
                         );
-                        $id = $db->insert('posts', $data);
-                        if ($id) {
-                            echo json_encode(array(
-                                "status" => http_response_code(),
-                                "message" => "Post created successfully"
-                            ));
-                        } else {
-                            http_response_code(400);
-                            echo json_encode(array(
-                                "status" => http_response_code(),
-                                "message" => "Failed to create post"
-                            ));
-                        }
+                        echo ($db->insert('posts', $data)) ? jsonResponse(message: "Post created successfully") : jsonResponse(400, "Failed to create post");
                     } else {
-                        http_response_code(400);
-                        echo json_encode(array(
-                            "status" => http_response_code(),
-                            "message" => "Permission denied" //ไม่ได้เป็น TA หรือ INSTRUCTOR ใน course นั้นๆ
-                        ));
+                        echo jsonResponse(400, "Permission denied");//ไม่ได้เป็น TA หรือ INSTRUCTOR ใน course นั้นๆ
                     }
                 } else {
-                    http_response_code(400);
-                    echo json_encode(array(
-                        "status" => http_response_code(),
-                        "message" => "Invalid input"
-                    ));
+                    echo jsonResponse(400, "Invalid input");
                 }
             }
             break;
         case 'DELETE':
             if (file_get_contents('php://input') == null) {
-                http_response_code(400);
-                echo json_encode(array(
-                    "status" => http_response_code(),
-                    "message" => "Invalid input"
-                ));
+                echo jsonResponse(400, "Invalid input");
             } else {
                 parse_str(file_get_contents('php://input'), $_DELETE);
                 //รับทั้ง u_id(id ของ user ที่เข้าใช้งานอยู่), c_id(่ของ course ที่ต้องการลบ post) และ p_id(post ที่ต้องการลบ) มา
@@ -110,36 +74,14 @@ try {
                     $db->where("c_id", $_DELETE['c_id']);
                     $user_role = $db->getValue('enrollments', 'u_role');
                     $db->where('p_id', $_DELETE['p_id']);
-                    if (($_DELETE['u_id'] == $post_info[0]['u_id'] || ($user_role == 'INSTRUCTOR' && $post_info[0]['u_role'] == 'TA')) && $db->delete('posts')) {
-                        echo json_encode(array(
-                            "status" => http_response_code(),
-                            "message" => "Post deleted successfully"
-                        ));
-                    } else {
-                        http_response_code(400);
-                        echo json_encode(array(
-                            "status" => http_response_code(),
-                            "message" => "Permission denied" //คนที่จะลบ post ไม่ใช่คนสร้าง POST
-                        ));
-                    }
+                    echo (($_DELETE['u_id'] == $post_info[0]['u_id'] || ($user_role == 'INSTRUCTOR' && $post_info[0]['u_role'] == 'TA')) && $db->delete('posts')) ? jsonResponse(message: "Post deleted successfully") : jsonResponse(400, "Permission denied");
                 } else {
-                    http_response_code(400);
-                    echo json_encode(array(
-                        "status" => http_response_code(),
-                        "message" => "Invalid input"
-                    ));
+                    echo jsonResponse(400, "Invalid input");
                 }
             }
         default:
-            echo json_encode(array(
-                "status" => http_response_code(),
-                "message" => ""
-            ));
+            echo jsonResponse();
     }
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(array(
-        "status" => http_response_code(),
-        "message" => $e->getMessage()
-    ));
+    echo jsonResponse(500, $e->getMessage());
 }
