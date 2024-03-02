@@ -1,5 +1,9 @@
 <?php
 require_once '../../initialize_head.php';
+// session_status explained:
+// _DISABLED = 0
+// _NONE = 1
+// _ACTIVE = 2
 
 session_start();
 try {
