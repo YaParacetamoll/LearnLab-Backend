@@ -6,15 +6,44 @@ require_once '../../initialize.php';
 
 try {
     if (!isset($_SESSION['u_id'])) {
-        echo jsonResponse(403, $e->getMessage());
+        echo jsonResponse(403, "Unauthorized");
         die();
     }
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'GET':
+            if (key_exists("c_id", $_GET) && key_exists("f_path", $_GET)) {
+
+                // $db->where('u_id', $_SESSION['u_id']);
+                // $db->where('c_id', intval($_GET['c_id']));
+                // $isAllow = $db->getOne('enrollments');
+
+                // if (is_null($isAllow)) {
+                //     echo jsonResponse(403, "Unauthorized on this course");
+                //     die();
+                // }
+
+                $db->where('c_id', intval($_GET['c_id']));
+                $db->where('f_path', $_GET['f_path']);
+                $cols = Array ("f_id", "u_id", "f_mime_type", "f_type");
+                $listing = $db->get('files', null, $cols);
+                // echo json_encode(array("data" => $listing, "statement" => $db->getLastQuery()));
+                echo json_encode($listing);
+            } else {
+                echo jsonResponse(400, "Invalid Input");
+            }
 
             break;
         case 'POST':
             if (key_exists("c_id", $_POST) && key_exists("f_path", $_POST) && key_exists("f_type", $_POST) && key_exists("f_data", $_FILES)) {
+                $db->where('u_id', $_SESSION['u_id']);
+                $db->where('c_id', $_POST['c_id']);
+                $isAllow = $db->getOne('enrollments');
+
+                if (is_null($isAllow)) {
+                    echo jsonResponse(403, "Unauthrized on this course");
+                    die();
+                }
+
                 if ($_FILES["f_data"]["error"] > 0) {
                     echo jsonResponse(400, "The uploaded file contains error");
                     die();
@@ -30,9 +59,9 @@ try {
                         "f_mime_type" => $mime_type,
                         "f_type" => 'FILE'
                     );
-                    $db->insert('files', $data);
+                    $res = $db->insert('files', $data);
                 }
-                echo jsonResponse(200, "File Uploaded Successfully");
+                echo ($res) ? jsonResponse(200, "File Uploaded Successfully") : jsonResponse(500, "File Upload Error");
             } else if (key_exists("c_id", $_POST) && key_exists("f_path", $_POST) && key_exists("f_type", $_POST)) {
                 echo jsonResponse(200, "Folder Created Successfully");
             } else {
