@@ -24,7 +24,7 @@ try {
 
                 $db->where('c_id', intval($_GET['c_id']));
                 $db->where('f_path', $_GET['f_path']);
-                $cols = Array ("f_id", "u_id", "f_mime_type", "f_type");
+                $cols = array("f_id", "u_id", "f_mime_type", "f_type");
                 $listing = $db->get('files', null, $cols);
                 // echo json_encode(array("data" => $listing, "statement" => $db->getLastQuery()));
                 echo json_encode($listing);
@@ -69,6 +69,17 @@ try {
             }
             break;
         case 'DELETE':
+            $JSON_DATA = json_decode(file_get_contents('php://input'), true);
+            if (key_exists("f_id", $JSON_DATA)) {
+                $db->where('f_id', $JSON_DATA['f_id']);
+                if ($db->delete('files')) {
+                    echo jsonResponse(200, "Deleted Successfully");
+                } else {
+                    echo jsonResponse(500, "Deletion Failure");
+                }
+            } else {
+                echo jsonResponse(400, "Invaild Parameters");
+            }
             break;
         default:
             echo jsonResponse();
