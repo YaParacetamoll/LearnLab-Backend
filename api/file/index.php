@@ -13,14 +13,14 @@ try {
         case 'GET':
             if (key_exists("c_id", $_GET) && key_exists("f_path", $_GET)) {
 
-                // $db->where('u_id', $_SESSION['u_id']);
-                // $db->where('c_id', intval($_GET['c_id']));
-                // $isAllow = $db->getOne('enrollments');
+                $db->where('u_id', $_SESSION['u_id']);
+                $db->where('c_id', intval($_GET['c_id']));
+                $isAllow = $db->getOne('enrollments');
 
-                // if (is_null($isAllow)) {
-                //     echo jsonResponse(403, "Unauthorized on this course");
-                //     die();
-                // }
+                if (is_null($isAllow)) {
+                    echo jsonResponse(403, "Unauthorized on this course");
+                    die();
+                }
 
                 $db->where('c_id', intval($_GET['c_id']));
                 $db->where('f_path', $_GET['f_path']);
