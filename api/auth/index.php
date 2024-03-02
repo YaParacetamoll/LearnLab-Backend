@@ -8,6 +8,10 @@ try {
             if (isset($_SESSION['u_id'])) {
                 $db->where("u_id", intval($_SESSION['u_id']));
                 $user = $db->getOne("users");
+                unset($user['u_hashed_password']);
+                if (!is_null($user['u_avatar'])) {
+                    $user['u_avatar'] =  base64_encode($user['u_avatar']);
+                } 
                 echo json_encode(array(
                     "status" => http_response_code(),
                     "data" => $user
