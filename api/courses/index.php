@@ -7,16 +7,35 @@ try {
         case 'GET':
             $output = array();
             $page = isset($_GET["page"]) ? (intval($_GET["page"]) <= 0 ? 1 : (intval($_GET["page"]))) : 1;
+            $locked = isset($_GET["locked"]) ? (($_GET["locked"] == 'true') ? 'true' : ($_GET["locked"])) : 'false'; // true - false - free
             $db->pageLimit = isset($_GET["limit"]) ? intval($_GET["limit"]) : 10;
             if (isset($_GET["search"])) $db->where('c_name', '%' . $_GET["search"] . '%', 'LIKE');
+            if ($locked == 'true') $db->where('c_hashed_password', NULL, 'IS NOT');
+            if ($locked == 'free') $db->where('c_hashed_password', NULL, 'IS');
             $courses = $db->where('c_privacy', 'PUBLIC');
             $courses = $db->arraybuilder()->paginate("courses", $page);
             $output["page"] = $page;
             $output["limit"] = $db->pageLimit;
             $output["total_page"] = $db->totalPages;
+            foreach (array_values($courses) as $i => $obj) {
+                $courses[$i]['c_hashed_password'] = !is_null($courses[$i]['c_hashed_password']);
+            }
             $output["data"] = $courses;
             echo json_encode($output);
             break;
+
+        case 'POST':
+            $output = array();
+            if (!isset($_POST["c_id"]) /*|| !isset($_POST["u_id"]) */) {
+                echo jsonResponse(400, "No Course ID given");
+                break;
+            }
+            $db->where('c_id', intval($_POST["c_id"]));
+            $course = $db->getOne("courses");
+            $course['c_hashed_password'] = !is_null($course['c_hashed_password']);
+            echo json_encode($course);
+            break;
+
         case 'PUT':
             if (file_get_contents('php://input') == null) {
                 echo jsonResponse(400, "Invalid input");
@@ -38,7 +57,7 @@ try {
                             "u_role" => "INSTRUCTOR"
                         );
                         $db->insert('enrollments', $enroll_data);
-                        echo jsonResponse(message:'Course was created successfully! Id = ' . $id);
+                        echo jsonResponse(message: 'Course was created successfully! Id = ' . $id);
                     } else {
                         echo jsonResponse(400, "Fail to create course.");
                     }
@@ -57,7 +76,7 @@ try {
                     $role = $db->getValue("enrollments", 'u_role');
                     if ($role && $role == "INSTRUCTOR") {
                         $db->where('c_id', $_DELETE["c_id"]);
-                        echo ($db->delete('courses')) ? jsonResponse(message:'successfully deleted') : jsonResponse(400, "fail to delete course");
+                        echo ($db->delete('courses')) ? jsonResponse(message: 'successfully deleted') : jsonResponse(400, "fail to delete course");
                     } else {
                         echo jsonResponse(400, "Permission denied");
                     }
