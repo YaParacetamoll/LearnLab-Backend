@@ -1,7 +1,6 @@
 <?php
 require_once '../../initialize_head.php';
 
-session_start();
 try {
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'GET':
