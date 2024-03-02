@@ -18,4 +18,5 @@ header('Content-Type: application/json; charset=utf-8');
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->safeload();
+session_start();
 ?>

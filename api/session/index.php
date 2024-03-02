@@ -5,7 +5,6 @@ require_once '../../initialize_head.php';
 // _NONE = 1
 // _ACTIVE = 2
 
-session_start();
 try {
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'GET':
