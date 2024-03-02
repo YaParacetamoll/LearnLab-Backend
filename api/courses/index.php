@@ -9,7 +9,7 @@ try {
             $page = isset($_GET["page"]) ? (intval($_GET["page"]) <= 0 ? 1 : (intval($_GET["page"]))) : 1;
             $locked = isset($_GET["locked"]) ? (($_GET["locked"] == 'true') ? 'true' : ($_GET["locked"])) : 'false'; // true - false - free
             $db->pageLimit = isset($_GET["limit"]) ? intval($_GET["limit"]) : 10;
-            if (isset($_GET["search"])) $db->where('c_name', '%' . $_GET["search"] . '%', 'LIKE');
+            if (isset($_GET["search"]) && strlen($_GET["search"]) > 0) $db->where('c_name', '%' . $_GET["search"] . '%', 'LIKE');
             if ($locked == 'true') $db->where('c_hashed_password', NULL, 'IS NOT');
             if ($locked == 'free') $db->where('c_hashed_password', NULL, 'IS');
             $courses = $db->where('c_privacy', 'PUBLIC');
