@@ -13,7 +13,7 @@ try {
             $db->pageLimit = isset($_GET["limit"]) ? intval($_GET["limit"]) : 10;
             $db->join("courses c", "e.c_id=c.c_id", "LEFT");
             $db->where("e.u_id", $_SESSION['u_id']);
-            if (isset($_GET["search"])) $db->where('c_name', '%' . $_GET["search"] . '%', 'LIKE');
+            if (isset($_GET["search"]) && strlen($_GET["search"]) > 0) $db->where('c_name', '%' . $_GET["search"] . '%', 'LIKE');
             if ($locked == 'true') $db->where('c_hashed_password', NULL, 'IS NOT');
             if ($locked == 'free') $db->where('c_hashed_password', NULL, 'IS');
             $courses = $db->arraybuilder()->paginate("enrollments e", $page);
