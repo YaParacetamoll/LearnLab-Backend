@@ -14,7 +14,7 @@ try {
                     echo jsonResponse(400, "The course's password incorrect");//Course ตั้งรหัสแต่ User ใส่ผิด
                 } 
                 else {
-                    $db->where("u_id", $_POST);
+                    $db->where("u_id", $_POST['u_id']);
                     $role = $db->getValue("users", "u_role");
                     $data = array(
                         "u_id" => $_POST["u_id"],
