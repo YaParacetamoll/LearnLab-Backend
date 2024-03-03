@@ -5,8 +5,8 @@ require_once '../../initialize.php';
 try {
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'GET':
-            if (isset($_GET) && key_exists("u_id", $_GET) && key_exists("c_id", $_GET)) {
-                $db->where('u_id', $_GET['u_id']);
+            if (isset($_SESSION['u_id']) && isset($_GET) && key_exists("c_id", $_GET)) {
+                $db->where('u_id', intval($_SESSION['u_id']));
                 $db->where('c_id', $_GET['c_id']);
                 $result = $db->getOne("enrollments");
                 if ($result) {
@@ -28,36 +28,32 @@ try {
             }
             break;
         case 'PUT':
-            if (file_get_contents('php://input') == null) {
-                echo jsonResponse(400, "Invalid input");
-            } else {
-                $_PUT = json_decode(file_get_contents('php://input'), true);
-                if (key_exists('c_id', $_PUT) && key_exists('u_id', $_PUT) && key_exists('p_title', $_PUT) && key_exists('p_type', $_PUT)) {
-                    $db->where('c_id', $_PUT['c_id']);
-                    $db->where('u_id', $_PUT['u_id']);
-                    $result = $db->getOne("enrollments");
-                    if ($result && in_array($result['u_role'], ['TA', 'INSTRUCTOR'])) {
-                        $p_content = key_exists('p_content', $_PUT) ? $_PUT['p_content'] : NULL;
-                        $ct_id = key_exists('ct_id', $_PUT) ? $_PUT['ct_id'] : NULL;
-                        $p_item_list = key_exists('p_item_list', $_PUT) ? $_PUT['p_item_list'] : NULL;
-                        $p_show_time = key_exists('p_show_time', $_PUT) ? $_PUT['p_show_time'] : NULl;
-                        $data = array(
-                            "c_id" => $_PUT['c_id'],
-                            "u_id" => $_PUT['u_id'],
-                            "ct_id" => $ct_id,
-                            "p_title" => $_PUT['p_title'],
-                            "p_type" => $_PUT['p_type'],
-                            "p_content" => $p_content,
-                            "p_item_list" => $p_item_list,
-                            "p_show_time" => $p_show_time
-                        );
-                        echo ($db->insert('posts', $data)) ? jsonResponse(message: "Post created successfully") : jsonResponse(400, "Failed to create post");
-                    } else {
-                        echo jsonResponse(400, "Permission denied"); //ไม่ได้เป็น TA หรือ INSTRUCTOR ใน course นั้นๆ
-                    }
+            $_PUT = json_decode(file_get_contents('php://input'), true);
+            if (isset($_SESSION['u_id']) && isset($_PUT) && key_exists('c_id', $_PUT) && key_exists('p_title', $_PUT) && key_exists('p_type', $_PUT)) {
+                $db->where('c_id', $_PUT['c_id']);
+                $db->where('u_id', intval($_SESSION['u_id']));
+                $result = $db->getOne("enrollments");
+                if ($result && in_array($result['u_role'], ['TA', 'INSTRUCTOR'])) {
+                    $p_content = key_exists('p_content', $_PUT) ? $_PUT['p_content'] : NULL;
+                    $ct_id = key_exists('ct_id', $_PUT) ? $_PUT['ct_id'] : NULL;
+                    $p_item_list = key_exists('p_item_list', $_PUT) ? $_PUT['p_item_list'] : NULL;
+                    $p_show_time = key_exists('p_show_time', $_PUT) ? $_PUT['p_show_time'] : NULl;
+                    $data = array(
+                        "c_id" => $_PUT['c_id'],
+                        "u_id" => intval($_SESSION['u_id']),
+                        "ct_id" => $ct_id,
+                        "p_title" => $_PUT['p_title'],
+                        "p_type" => $_PUT['p_type'],
+                        "p_content" => $p_content,
+                        "p_item_list" => $p_item_list,
+                        "p_show_time" => $p_show_time
+                    );
+                    echo ($db->insert('posts', $data)) ? jsonResponse(message: "Post created successfully") : jsonResponse(400, "Failed to create post");
                 } else {
-                    echo jsonResponse(400, "Invalid input");
+                    echo jsonResponse(400, "Permission denied"); //ไม่ได้เป็น TA หรือ INSTRUCTOR ใน course นั้นๆ
                 }
+            } else {
+                echo jsonResponse(400, "Invalid input");
             }
             break;
         case 'POST':
@@ -85,17 +81,17 @@ try {
         case 'DELETE':
             $_DELETE = json_decode(file_get_contents('php://input'), true);
             //รับทั้ง u_id(id ของ user ที่เข้าใช้งานอยู่), c_id(่ของ course ที่ต้องการลบ post) และ p_id(post ที่ต้องการลบ) มา
-            if (isset($_DELETE) && key_exists("u_id", $_DELETE) && key_exists("p_id", $_DELETE) && key_exists("c_id", $_DELETE)) {
+            if (isset($_SESSION['u_id']) && isset($_DELETE) && key_exists("p_id", $_DELETE) && key_exists("c_id", $_DELETE)) {
                 $db->join("posts p", "p.u_id=e.u_id", "LEFT");
                 $db->where("p.p_id", $_DELETE['p_id']);
                 $db->where("e.c_id", $_DELETE['c_id']);
                 $post_info = $db->getOne("enrollments e", null, "e.u_id, e.u_role");
 
-                $db->where("u_id", $_DELETE['u_id']);
+                $db->where("u_id", intval($_SESSION['u_id']));
                 $db->where("c_id", $_DELETE['c_id']);
                 $user_role = $db->getValue('enrollments', 'u_role');
                 $db->where('p_id', $_DELETE['p_id']);
-                echo (($_DELETE['u_id'] == $post_info['u_id'] || ($user_role == 'INSTRUCTOR' && $post_info['u_role'] == 'TA')) && $db->delete('posts')) ? jsonResponse(message: "Post deleted successfully") : jsonResponse(400, "Permission denied");
+                echo ((intval($_SESSION['u_id']) == $post_info['u_id'] || ($user_role == 'INSTRUCTOR' && $post_info['u_role'] == 'TA')) && $db->delete('posts')) ? jsonResponse(message: "Post deleted successfully") : jsonResponse(400, "Permission denied");
             } else {
                 echo jsonResponse(400, "Invalid input");
             }
