@@ -32,8 +32,8 @@ try {
                     "u_gender" => $_POST["u_gender"],
                     "u_role" => $_POST["u_role"]
                 );
-                if (isset($_FILES["image"]) && $_FILES["image"]["error"] == 0) {
-                    $image = $_FILES["image"]["tmp_name"];
+                if (isset($_FILES["u_avatar"]) && $_FILES["u_avatar"]["error"] == 0) {
+                    $image = $_FILES["u_avatar"]["tmp_name"];
                     $imgContent = file_get_contents($image);
                     $mime_type = mime_content_type($image);
                     if (!strcmp(explode("/", $mime_type)[0], "image")) {
@@ -53,7 +53,7 @@ try {
             break;
         case 'PUT':
             $_PUT = json_decode(file_get_contents('php://input'), true);
-            if (key_exists("u_email", $_PUT) && key_exists("u_password", $_PUT)) {
+            if (isset($_PUT) && key_exists("u_email", $_PUT) && key_exists("u_password", $_PUT)) {
                 $db->where("u_email", $_PUT['u_email']);
                 $user = $db->getOne("users");
                 echo ($db->count > 0 && password_verify($_PUT['u_password'], $user['u_hashed_password'])) ? jsonResponse(message: "Authentication success") : jsonResponse(400, "Authentication failed");
