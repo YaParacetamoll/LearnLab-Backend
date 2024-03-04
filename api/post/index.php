@@ -1,5 +1,4 @@
 <?php
-require_once '../../vendor/autoload.php';
 require_once '../../initialize.php';
 
 try {
@@ -13,15 +12,21 @@ try {
                     $output = array();
                     $page = isset($_GET["page"]) ? (intval($_GET["page"]) <= 0 ? 1 : (intval($_GET["page"]))) : 1;
                     $db->pageLimit = isset($_GET["limit"]) ? intval($_GET["limit"]) : 10;
-                    $db->where('c_id', $_GET['c_id']);
-                    $posts = $db->arraybuilder()->paginate("posts", $page);
+                    $db->where('p.c_id', $_GET['c_id']);
+                    $db->join("posts p", "u.u_id=p.u_id", "LEFT");
+                    $db->join("enrollments e", "e.u_id=p.u_id", "LEFT");
+                    $posts = $db->arraybuilder()->paginate("users u", $page, "p_id, p_created_at, p_updated_at, p_title, p_content, p_item_list, p_type, p.u_id, e.u_role, u_firstname, u_lastname, u_avatar_mime_type");
                     $output["page"] = $page;
                     $output["limit"] = $db->pageLimit;
                     $output["total_page"] = $db->totalPages;
+                    foreach (array_values($posts) as $i => $obj) {
+                        $posts[$i]['u_avatar'] = !is_null($posts[$i]['u_avatar_mime_type']);
+                        unset($posts[$i]['u_avatar_mime_type']);
+                    }
                     $output["data"] = $posts;
                     echo json_encode($output);
                 } else {
-                    echo jsonResponse(400, "User didn't have enrollment on that course");
+                    echo jsonResponse(400, "You are not enrolled on that course.");
                 }
             } else {
                 echo jsonResponse(400, "Invalid input");

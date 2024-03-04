@@ -29,12 +29,14 @@ try {
                 if (isset($_GET["search"]) && strlen($_GET["search"]) > 0) $db->where('c_name', '%' . $_GET["search"] . '%', 'LIKE');
                 if ($locked == 'true') $db->where('c_hashed_password', NULL, 'IS NOT');
                 if ($locked == 'free') $db->where('c_hashed_password', NULL, 'IS');
-                $courses = $db->arraybuilder()->paginate("enrollments e", $page);
+                $courses = $db->arraybuilder()->paginate("enrollments e", $page, "c.c_id, c_name, c_hashed_password, c_description, c_banner_mime_type, c_updated_at");
                 $output["page"] = $page;
                 $output["limit"] = $db->pageLimit;
                 $output["total_page"] = $db->totalPages;
                 foreach (array_values($courses) as $i => $obj) {
                     $courses[$i]['c_hashed_password'] = !is_null($courses[$i]['c_hashed_password']);
+                    $courses[$i]['c_banner'] = !is_null($courses[$i]['c_banner_mime_type']);
+                    unset($courses[$i]['c_banner_mime_type']);
                 }
                 $output["data"] = $courses;
                 echo json_encode($output);

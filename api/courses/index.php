@@ -1,5 +1,4 @@
 <?php
-require_once '../../vendor/autoload.php';
 require_once '../../initialize.php';
 
 try {
@@ -13,12 +12,14 @@ try {
             if ($locked == 'true') $db->where('c_hashed_password', NULL, 'IS NOT');
             if ($locked == 'free') $db->where('c_hashed_password', NULL, 'IS');
             $courses = $db->where('c_privacy', 'PUBLIC');
-            $courses = $db->arraybuilder()->paginate("courses", $page);
+            $courses = $db->arraybuilder()->paginate("courses", $page, "c_id, c_name, c_hashed_password, c_description, c_banner_mime_type, c_updated_at");
             $output["page"] = $page;
             $output["limit"] = $db->pageLimit;
             $output["total_page"] = $db->totalPages;
             foreach (array_values($courses) as $i => $obj) {
                 $courses[$i]['c_hashed_password'] = !is_null($courses[$i]['c_hashed_password']);
+                $courses[$i]['c_banner'] = !is_null($courses[$i]['c_banner_mime_type']);
+                unset($courses[$i]['c_banner_mime_type']);
             }
             $output["data"] = $courses;
             echo json_encode($output);
@@ -50,6 +51,8 @@ try {
             $db->where('c_id', intval($JSON_DATA["c_id"]));
             $course = $db->getOne("courses");
             $course['c_hashed_password'] = !is_null($course['c_hashed_password']);
+            $course['c_banner'] = !is_null($course['c_banner_mime_type']);
+            unset($course['c_banner_mime_type']);
             echo json_encode($course);
             break;
 

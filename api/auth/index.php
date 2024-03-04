@@ -58,6 +58,7 @@ try {
                 echo ($db->count > 0 && password_verify($_PUT['u_password'], $user['u_hashed_password'])) ? jsonResponse(message: "Authentication success") : jsonResponse(400, "Authentication failed");
                 if (!is_null($user)) {
                     $_SESSION['u_id'] = intval($user['u_id']);
+                    $_SESSION['u_role'] = $user['u_role'];
                 }
             } else {
                 echo jsonResponse(400, "Invalid input");
