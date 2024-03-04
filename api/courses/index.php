@@ -24,13 +24,13 @@ try {
             echo json_encode($output);
             break;
 
-        case 'POST':
+        case 'PUT':
             $output = array();
-            if (!isset($_SESSION['u_id'])) {
+            if (!isset($_SESSION['u_id']) && file_get_contents('php://input') == null) {
                 jsonResponse(403, "Unauthenticated");
                 die();
             }
-
+            parse_str(file_get_contents('php://input'), $_PUT);
             $en_crs = array(); // Course that user enrolled
             $cols = array("c_id");
             $db->where('u_id', $_SESSION['u_id']);
@@ -39,33 +39,33 @@ try {
                 foreach ($enrolled_course as $ec) {
                     array_push($en_crs, $ec["c_id"]);
                 }
-            if (!in_array(intval($_POST["c_id"]), $en_crs)) {
+            if (!in_array(intval($_PUT["c_id"]), $en_crs)) {
                 jsonResponse(403, "You're not a member of this course");
                 die();
             }
-            if (!isset($_POST["c_id"]) /*|| !isset($_POST["u_id"]) */) {
+            if (!isset($_PUT["c_id"]) /*|| !isset($_PUT["u_id"]) */) {
                 echo jsonResponse(400, "No Course ID given");
                 break;
             }
-            $db->where('c_id', intval($_POST["c_id"]));
+            $db->where('c_id', intval($_PUT["c_id"]));
             $course = $db->getOne("courses");
             $course['c_hashed_password'] = !is_null($course['c_hashed_password']);
             echo json_encode($course);
             break;
 
-        case 'PUT':
-            $_PUT = json_decode(file_get_contents('php://input'), true);
-            if (isset($_SESSION['u_id']) && isset($_PUT) && key_exists("c_name", $_PUT) && key_exists("c_description", $_PUT) && key_exists("c_privacy", $_PUT)) {
+        case 'POST':
+            $JSON_DATA = json_decode(file_get_contents('php://input'), true);
+            if (isset($_SESSION['u_id']) && isset($JSON_DATA) && key_exists("c_name", $JSON_DATA) && key_exists("c_description", $JSON_DATA) && key_exists("c_privacy", $JSON_DATA)) {
                 $c_code = bin2hex(random_bytes(4));
-                $hash_password = key_exists("c_hashed_password", $_PUT) ? password_hash($_PUT["c_hashed_password"], PASSWORD_DEFAULT) : NULL;
+                $hash_password = key_exists("c_hashed_password", $JSON_DATA) ? password_hash($JSON_DATA["c_hashed_password"], PASSWORD_DEFAULT) : NULL;
                 $data = array(
-                    "c_name" => $_PUT["c_name"],
+                    "c_name" => $JSON_DATA["c_name"],
                     "c_code" => $c_code,
                     "c_hashed_password" => $hash_password,
-                    "c_description" => $_PUT["c_description"]
+                    "c_description" => $JSON_DATA["c_description"]
                 );
                 if ($db->insert('courses', $data)) {
-                    $db->where("c_name", $_PUT["c_name"]);
+                    $db->where("c_name", $JSON_DATA["c_name"]);
                     $c_id = $db->getValue("courses", "c_id");
                     $enroll_data = array(
                         "c_id" => $c_id,
@@ -79,6 +79,14 @@ try {
                 }
             } else {
                 echo jsonResponse(400, "Invalid input");
+            }
+            break;
+        case "PATCH":
+            $_PATCH = json_decode(file_get_contents('php://input'), true);
+            if (isset($_PATCH) && count($_PATCH) > 0) {
+                foreach(array_keys($_PATCH) as $key) {
+                    
+                }
             }
             break;
         case 'DELETE':
