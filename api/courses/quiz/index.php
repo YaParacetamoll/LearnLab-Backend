@@ -24,6 +24,12 @@ try {
                 echo jsonResponse(400, "Invalid input");
             }
             break;
+        case "POST":
+            $JSON_DATA = json_decode(file_get_contents('php://input'), true);
+            if (isset($JSON_DATA) && (key_exists("q_id", $JSON_DATA))) {
+                
+            }
+            break;
     }
 } catch (Exception $e) {
     echo jsonResponse(500, $e->getMessage());
