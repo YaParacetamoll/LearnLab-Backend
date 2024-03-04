@@ -3,7 +3,7 @@ require_once '../../../initialize.php';
 
 try {
     switch ($_SERVER['REQUEST_METHOD']) {
-        case 'POST':
+        case 'POST': //multipart form
             if (!isset($_SESSION['u_id'])) {
                 jsonResponse(403, "Unauthenticated");
                 die();
