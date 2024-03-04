@@ -10,9 +10,9 @@ try {
                 $db->where("c_id", $JSON_DATA["c_id"]);
                 $hashed_password = $db->getValue("courses", "c_hashed_password");
                 if ($hashed_password != null && !key_exists("c_password", $JSON_DATA)) {
-                    echo jsonResponse(400, "Invalid input"); //Course ตั้งรหัสแต่ User ไม่ได้ใส่มา
+                    echo jsonResponse(400, "กรุณาใส่รหัส"); //Course ตั้งรหัสแต่ User ไม่ได้ใส่มา
                 } else if ($hashed_password != null && key_exists("c_password", $JSON_DATA) && !password_verify($JSON_DATA["c_password"], $hashed_password)) {
-                    echo jsonResponse(400, "The course's password incorrect"); //Course ตั้งรหัสแต่ User ใส่ผิด
+                    echo jsonResponse(400, "รหัสคอร์สผิด กรุณาลองใหม่"); //Course ตั้งรหัสแต่ User ใส่ผิด
                 } else {
                     $db->where("u_id", $_SESSION['u_id']);
                     $role = $db->getValue("users", "u_role");
@@ -22,7 +22,7 @@ try {
                         "u_role" => $role
                     );
                     $u_id = $db->insert('enrollments', $data);
-                    echo ($u_id) ? jsonResponse(message: "Enrollment success") : jsonResponse(400, "Enrollment failed");
+                    echo ($u_id) ? jsonResponse(message: "เข้าร่วมคอร์สสำเร็จ") : jsonResponse(400, "เข้าร่วมคอร์สล้มเหลว");
                 }
             } else {
                 echo jsonResponse(400, "Invalid input");
@@ -42,5 +42,10 @@ try {
             echo jsonResponse();
     }
 } catch (Exception $e) {
-    echo jsonResponse(500, $e->getMessage());
+    $error = explode(" ", $e->getMessage());
+    if ($error[0] === 'Duplicate' && $error[1] === 'entry') {
+        echo jsonResponse(500, "คุณเป็นสมาชิกของคอร๋สนี้อยู่แล้ว");
+    } else {
+        echo jsonResponse(500, $e->getMessage());
+    }
 }
