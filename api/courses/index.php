@@ -25,12 +25,16 @@ try {
             break;
 
         case 'PUT':
+            $JSON_DATA = json_decode(file_get_contents('php://input'), true);
             $output = array();
             if (!isset($_SESSION['u_id']) && file_get_contents('php://input') == null) {
-                jsonResponse(403, "Unauthenticated");
-                die();
+                echo jsonResponse(403, "Unauthenticated");
+                break;
             }
-            parse_str(file_get_contents('php://input'), $_PUT);
+            if (!isset($JSON_DATA["c_id"])) {
+                echo jsonResponse(400, "No Course ID given");
+                break;
+            }
             $en_crs = array(); // Course that user enrolled
             $cols = array("c_id");
             $db->where('u_id', $_SESSION['u_id']);
@@ -39,15 +43,11 @@ try {
                 foreach ($enrolled_course as $ec) {
                     array_push($en_crs, $ec["c_id"]);
                 }
-            if (!in_array(intval($_PUT["c_id"]), $en_crs)) {
-                jsonResponse(403, "You're not a member of this course");
+            if (!in_array(intval($JSON_DATA["c_id"]), $en_crs)) {
+                echo jsonResponse(403, "You're not a member of this course");
                 die();
             }
-            if (!isset($_PUT["c_id"]) /*|| !isset($_PUT["u_id"]) */) {
-                echo jsonResponse(400, "No Course ID given");
-                break;
-            }
-            $db->where('c_id', intval($_PUT["c_id"]));
+            $db->where('c_id', intval($JSON_DATA["c_id"]));
             $course = $db->getOne("courses");
             $course['c_hashed_password'] = !is_null($course['c_hashed_password']);
             echo json_encode($course);
