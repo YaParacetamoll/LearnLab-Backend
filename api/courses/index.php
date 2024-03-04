@@ -26,6 +26,23 @@ try {
 
         case 'POST':
             $output = array();
+            if (!isset($_SESSION['u_id'])) {
+                jsonResponse(403, "Unauthenticated");
+                die();
+            }
+
+            $en_crs = array(); // Course that user enrolled
+            $cols = array("c_id");
+            $db->where('u_id', $_SESSION['u_id']);
+            $enrolled_course = $db->get('enrollments', null, $cols);
+            if ($db->count > 0)
+                foreach ($enrolled_course as $ec) {
+                    array_push($en_crs, $ec["c_id"]);
+                }
+            if (!in_array(intval($_POST["c_id"]), $en_crs)) {
+                jsonResponse(403, "You're not a member of this course");
+                die();
+            }
             if (!isset($_POST["c_id"]) /*|| !isset($_POST["u_id"]) */) {
                 echo jsonResponse(400, "No Course ID given");
                 break;
