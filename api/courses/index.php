@@ -26,8 +26,11 @@ try {
 
         case 'PUT':
             $output = array();
-            if (!isset($_SESSION['u_id']) && file_get_contents('php://input') == null) {
+            if (!isset($_SESSION['u_id'])) {
                 jsonResponse(403, "Unauthenticated");
+                die();
+            } else if (file_get_contents('php://input') == null) {
+                jsonResponse(400, "Invalid input");
                 die();
             }
             parse_str(file_get_contents('php://input'), $_PUT);
@@ -64,6 +67,15 @@ try {
                     "c_hashed_password" => $hash_password,
                     "c_description" => $JSON_DATA["c_description"]
                 );
+                if (isset($_FILES["c_banner"]) && $_FILES["c_banner"]["error"] == 0) {
+                    $image = $_FILES["c_banner"]["tmp_name"];
+                    $imgContent = file_get_contents($image);
+                    $mime_type = mime_content_type($image);
+                    if (!strcmp(explode("/", $mime_type)[0], "image")) {
+                        $data["c_banner"] = $imgContent;
+                        $data["c_banner_mime_type"] = $mime_type;
+                    }
+                }
                 if ($db->insert('courses', $data)) {
                     $db->where("c_name", $JSON_DATA["c_name"]);
                     $c_id = $db->getValue("courses", "c_id");
@@ -79,14 +91,6 @@ try {
                 }
             } else {
                 echo jsonResponse(400, "Invalid input");
-            }
-            break;
-        case "PATCH":
-            $_PATCH = json_decode(file_get_contents('php://input'), true);
-            if (isset($_PATCH) && count($_PATCH) > 0) {
-                foreach(array_keys($_PATCH) as $key) {
-                    
-                }
             }
             break;
         case 'DELETE':
