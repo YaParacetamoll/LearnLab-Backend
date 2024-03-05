@@ -15,6 +15,10 @@ try {
             $db->where("c_id", $_POST['c_id']);
             $db->where("u_id", intval($_SESSION['u_id']));
             $role = $db->getValue("enrollments", "u_role");
+            if (strcmp($role, "INSTRUCTOR")) {
+                echo jsonResponse(400, "คุณไม่มีสิทธิ์ที่จะแก้ไขคอร์สเรียน");
+                die();
+            }
             $data = array();
             foreach (array_keys($_POST) as $key) {
                 $data[$key] = $_POST[$key];
@@ -29,7 +33,7 @@ try {
                 }
             }
             $db->where("c_id", $_POST['c_id']);
-            echo (!strcmp($role, "INSTRUCTOR") && $db->update("courses", $data)) ? jsonResponse(message: "แก้ไขข้อมูลคอร์สเรียนเรียบร้อย") : jsonResponse(400, "การแก้ไขคอร์สล้มเหลว");
+            echo ($db->update("courses", $data)) ? jsonResponse(message: "แก้ไขข้อมูลคอร์สเรียนเรียบร้อย") : jsonResponse(400, "การแก้ไขคอร์สล้มเหลว");
             break;
     }
 } catch (Exception $e) {
