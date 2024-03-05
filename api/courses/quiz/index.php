@@ -3,9 +3,16 @@ require_once '../../../initialize.php';
 
 try {
     switch ($_SERVER['REQUEST_METHOD']) {
-        case 'PUT':
+        case 'PUT': //สร้าง quiz
             $_PUT = json_decode(file_get_contents('php://input'), true);
-            if (isset($_PUT) && key_exists('q_id', $_PUT) && key_exists('c_id', $_PUT) && key_exists('q_name', $_PUT) && key_exists('q_items', $_PUT)) {
+            if (isset($_SESSION['u_id']) && isset($_PUT) && key_exists('q_id', $_PUT) && key_exists('c_id', $_PUT) && key_exists('q_name', $_PUT) && key_exists('q_items', $_PUT)) {
+                $db->where('c_id', $_PUT['c_id']);
+                $db->where('u_id', intval($_SESSION['u_id']));
+                $role = $db->getValue("enrollments", "u_role");
+                if (strcmp($role, "INSTRUCTOR")) {
+                    echo jsonResponse(400, "คุณไม่มีสิทธิ์ในการสร้างแบบทดสอบ");
+                    die();
+                }
                 $keys = array("q_begin_date", "q_due_date", "q_time_limit", "q_password");
                 $data = array(
                     "q_id" => $_PUT["q_id"],
@@ -24,12 +31,52 @@ try {
                 echo jsonResponse(400, "Invalid input");
             }
             break;
-        case "POST":
+        case "POST": // แก้ไข quiz
             $JSON_DATA = json_decode(file_get_contents('php://input'), true);
+            if (!isset($_SESSION['u_id'])) {
+                echo jsonResponse(403, "Unauthenticated");
+                die();
+            }
             if (isset($JSON_DATA) && (key_exists("q_id", $JSON_DATA))) {
-                
+                $db->where('c_id', $JSON_DATA['c_id']);
+                $db->where('u_id', intval($_SESSION['u_id']));
+                $role = $db->getValue("enrollments", "u_role");
+                if (strcmp($role, "INSTRUCTOR")) {
+                    echo jsonResponse(400, "คุณไม่มีสิทธิ์ในการแก้ไขแบบทดสอบ");
+                    die();
+                }
+                $data = array();
+                foreach (array_keys($JSON_DATA) as $key) {
+                    $data[$key] = $JSON_DATA[$key];
+                }
+                $db->where("q_id", $JSON_DATA["q_id"]);
+                echo ($db->update("quizzes", $data)) ? jsonResponse(message: "บันทึกการแก้ไขแบบทดสอบ") : jsonResponse(400, "ไม่สามารถบันทึกการแก้ไขแบบทดสอบได้");
+            } else {
+                echo jsonResponse(400, "Invalid input");
             }
             break;
+        case "DELETE": // ลบ quiz
+            if (!isset($_SESSION['u_id'])) {
+                echo jsonResponse(403, "Unauthenticated");
+                die();
+            }
+            $_DELETE = json_decode(file_get_contents('php://input'), true);
+            if (isset($_DELETE) && key_exists("q_id", $_DELETE) && key_exists("c_id", $_DELETE)) {
+                $db->where('c_id', $_DELETE['c_id']);
+                $db->where('u_id', intval($_SESSION['u_id']));
+                $role = $db->getValue("enrollments", "u_role");
+                if (strcmp($role, "INSTRUCTOR")) {
+                    echo jsonResponse(400, "คุณไม่มีสิทธิ์ในการลบแบบทดสอบ");
+                    die();
+                }
+                $db->where('q_id', $_DELETE("q_id"));
+                echo ($db->delete("quizzes")) ? jsonResponse(message: "ลบแบบทดสอบเรียบร้อบ") : jsonResponse(400, "ไม่สามารถลบแบบทดสอบได้");
+            } else {
+                echo jsonResponse(400, "Invalid input");
+            }
+            break;
+        default:
+            echo jsonResponse();
     }
 } catch (Exception $e) {
     echo jsonResponse(500, $e->getMessage());
