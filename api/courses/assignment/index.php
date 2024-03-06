@@ -15,7 +15,7 @@ try {
             }
             $data = array();
             foreach (array_keys($_PUT) as $key) {
-                $data[$key] = $_PUT[$key];
+                $data[$key] = ($key == "a_files") ? json_encode($_PUT[$key]) : $_PUT[$key];
             }
             echo ($db->insert("assignments", $data)) ? jsonResponse(message: "มอบหมายงานภายในคอร์สเรียบร้อย") : jsonResponse(400, "ไม่สามารถมอบหมายงานได้");
             break;
@@ -31,7 +31,7 @@ try {
             }
             $data = array();
             foreach (array_keys($_PUT) as $key) {
-                $data[$key] = $_PUT[$key];
+                $data[$key] = ($key == "a_files") ? json_encode($_PUT[$key]) : $_PUT[$key];
             }
             $db->where("a_id", $JSON['a_id']);
             echo ($db->update("assignments", $data)) ? jsonResponse(message: "แก้ไขงานที่มอบหมายเรียบร้อย") : jsonResponse(400, "ไม่สามารถแก้ไขได้");
