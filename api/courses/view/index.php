@@ -5,10 +5,20 @@ require_once '../../../initialize.php';
 try {
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'GET':
-            $JSON_DATA = json_decode(file_get_contents('php://input'), true);
-            if (isset($JSON_DATA) && key_exists('option', $JSON_DATA) && key_exists('c_id', $JSON_DATA)) {
-                $db->where("c_id", $JSON_DATA['c_id']);
-                $result = (!strcmp(strtoupper($JSON_DATA['option']), "QUIZ")) ? $db->get('quizzes') : $db->get('assignments');
+            if (isset($_GET) && key_exists('option', $_GET) && key_exists('c_id', $_GET)) {
+                $db->where("c_id", $_GET['c_id']);
+                if (strtoupper($_GET['option']) == "QUIZ") {
+                    $result = $db->get('quizzes');
+                } else {
+                    $result = $db->get('assignments');
+                }
+                foreach (array_values($result) as $i => $obj) {
+                    if (key_exists("q_items", $result[$i])) {
+                        $result[$i]["q_items"] = json_decode($result[$i]["q_items"]);
+                    } else if (key_exists("a_files", $result[$i])){
+                        $result[$i]["a_files"] = json_decode($result[$i]["a_files"]);
+                    }
+                }
                 echo json_encode(
                     $result
                 );
