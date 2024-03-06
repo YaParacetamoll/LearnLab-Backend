@@ -5,7 +5,7 @@ try {
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'PUT': //สร้าง quiz
             $_PUT = json_decode(file_get_contents('php://input'), true);
-            if (isset($_SESSION['u_id']) && isset($_PUT) && key_exists('q_id', $_PUT) && key_exists('c_id', $_PUT) && key_exists('q_name', $_PUT) && key_exists('q_items', $_PUT)) {
+            if (isset($_SESSION['u_id']) && isset($_PUT) && key_exists('c_id', $_PUT) && key_exists('q_name', $_PUT) && key_exists('q_items', $_PUT)) {
                 $db->where('c_id', $_PUT['c_id']);
                 $db->where('u_id', intval($_SESSION['u_id']));
                 $role = $db->getValue("enrollments", "u_role");
