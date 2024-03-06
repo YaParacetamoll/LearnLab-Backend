@@ -10,7 +10,6 @@ try {
                 $banner = $db->getOne('courses', 'c_banner, c_banner_mime_type');
                 if (!is_null($banner['c_banner'])) {
                     header('Content-type: ' . $banner['c_banner_mime_type']);
-                    $banner['c_banner'] = $banner['c_banner'];
                     echo $banner['c_banner'];
                 } else {
                     echo jsonResponse(404, "No image here");

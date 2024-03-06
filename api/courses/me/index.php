@@ -4,9 +4,12 @@ require_once '../../../initialize.php';
 
 try {
     if (!isset($_SESSION['u_id'])) {
+        
         echo jsonResponse(403, 'Unauthenticated');
         die();
     }
+
+
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'GET':
             if (isset($_GET['mycourse'])) {
@@ -17,6 +20,16 @@ try {
                 if ($db->count > 0)
                     foreach ($enrolled_course as $ec) {
                         array_push($en_crs, $ec["c_id"]);
+                    }
+                echo json_encode($en_crs);
+            } else if (isset($_GET['my_course_role'])) {
+                $en_crs = array();
+                $cols = array("c_id", "u_role");
+                $db->where('u_id', $_SESSION['u_id']);
+                $enrolled_course = $db->get('enrollments', null, $cols);
+                if ($db->count > 0)
+                    foreach ($enrolled_course as $ec) {
+                        $en_crs[$ec["c_id"]] = $ec["u_role"];
                     }
                 echo json_encode($en_crs);
             } else {
