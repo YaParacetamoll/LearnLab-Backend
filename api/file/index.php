@@ -21,14 +21,14 @@ try {
                     die();
                 }
 
+                $db->join('users u', "u.u_id=f.u_id", "LEFT");
                 $db->where('c_id', intval($_GET['c_id']));
                 $db->where('f_path', $_GET['f_path']);
                 $db->where('f_privacy', 'PUBLIC');
                 $db->orderBy('f_type', 'desc');
                 $db->orderBy('f_name', 'asc');
-                $cols = array("f_id", "f_name", "u_id", "f_mime_type", "f_type", 'created_at', 'updated_at');
-                $listing = $db->get('files', null, $cols);
-                // echo json_encode(array("data" => $listing, "statement" => $db->getLastQuery()));
+                $cols = array("f.f_id", "f.f_name", "f.u_id", "u.u_firstname", "u.u_lastname" ,"f.f_mime_type", "f.f_type", 'f.created_at', 'f.updated_at');
+                $listing = $db->get('files f', null, $cols);
                 echo json_encode($listing);
             } else if (key_exists("f_id", $_GET)) {
                 $db->where('f_id', intval($_GET["f_id"]));
@@ -52,7 +52,7 @@ try {
                 $isAllow = $db->getOne('enrollments');
 
                 if (is_null($isAllow)) {
-                    echo jsonResponse(403, "Unauthrized on this course");
+                    echo jsonResponse(403, "Unauthorized on this course");
                     die();
                 }
 

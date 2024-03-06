@@ -12,6 +12,7 @@ try {
                 if (isset($user['u_avatar']) && !is_null($user['u_avatar'])) {
                     $user['u_avatar'] =  base64_encode($user['u_avatar']);
                 }
+                
                 echo json_encode(
                     $user
                 );
