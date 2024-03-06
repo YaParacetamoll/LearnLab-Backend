@@ -10,20 +10,18 @@ try {
                 $result = $db->getOne("enrollments");
                 if ($result) {
                     $output = array();
-                    $page = isset($_GET["page"]) ? (intval($_GET["page"]) <= 0 ? 1 : (intval($_GET["page"]))) : 1;
-                    $db->pageLimit = isset($_GET["limit"]) ? intval($_GET["limit"]) : 10;
                     $db->where('p.c_id', $_GET['c_id']);
                     $db->join("posts p", "u.u_id=p.u_id", "LEFT");
                     $db->join("enrollments e", "e.u_id=p.u_id", "LEFT");
-                    $posts = $db->arraybuilder()->paginate("users u", $page, "p_id, p_created_at, p_updated_at, p_title, p_content, p_item_list, p_type, p.u_id, e.u_role, u_firstname, u_lastname, u_avatar_mime_type");
-                    $output["page"] = $page;
-                    $output["limit"] = $db->pageLimit;
-                    $output["total_page"] = $db->totalPages;
+                    $cols = array("p_id, p_created_at, p_updated_at, p_title, p_content, p_item_list, p_type, p.u_id, e.u_role, u_firstname, u_lastname, u_avatar_mime_type");
+                    $posts = $db->get("users u", null, $cols);
                     foreach (array_values($posts) as $i => $obj) {
                         $posts[$i]['u_avatar'] = !is_null($posts[$i]['u_avatar_mime_type']);
+                        $posts[$i]['p_item_list'] = json_decode($posts[$i]['p_item_list']);
                         unset($posts[$i]['u_avatar_mime_type']);
                     }
                     $output["data"] = $posts;
+
                     echo json_encode($output);
                 } else {
                     echo jsonResponse(400, "You are not enrolled on that course.");
