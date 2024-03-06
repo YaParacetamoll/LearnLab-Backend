@@ -41,7 +41,7 @@ try {
                 if ($result && in_array($result['u_role'], ['TA', 'INSTRUCTOR'])) {
                     $p_content = key_exists('p_content', $_PUT) ? $_PUT['p_content'] : NULL;
                     $ct_id = key_exists('ct_id', $_PUT) ? $_PUT['ct_id'] : NULL;
-                    $p_item_list = key_exists('p_item_list', $_PUT) ? $_PUT['p_item_list'] : NULL;
+                    $p_item_list = key_exists('p_item_list', $_PUT) ? json_encode($_PUT['p_item_list']) : NULL;
                     $p_show_time = key_exists('p_show_time', $_PUT) ? $_PUT['p_show_time'] : NULl;
                     $data = array(
                         "c_id" => $_PUT['c_id'],
@@ -67,12 +67,9 @@ try {
                 $db->where("p_id", $JSON_DATA["p_id"]);
                 $post_u_id = $db->getValue('posts', 'u_id');
                 if (intval($_SESSION['u_id']) == $post_u_id) {
-                    $keys = array("p_title", "p_content", "ct_id", "p_item_list", "p_type", "p_show_time");
                     $data = array();
-                    foreach ($keys as $key) {
-                        if (key_exists($key, $JSON_DATA)) {
-                            $data[$key] = $JSON_DATA[$key];
-                        }
+                    foreach (array_keys($JSON_DATA) as $key) {
+                        $data[$key] = ($key == "p_item_list") ? json_encode($JSON_DATA[$key]) : $JSON_DATA[$key];
                     }
                     $db->where("p_id", $JSON_DATA['p_id']);
                     echo ($db->update('posts', $data)) ? jsonResponse(message: "Post edited successfully") : jsonResponse(400, "Fail to edit post.");
