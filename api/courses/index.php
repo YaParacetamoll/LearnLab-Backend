@@ -48,8 +48,9 @@ try {
                 echo jsonResponse(403, "You're not a member of this course");
                 die();
             }
-            $db->where('c_id', intval($JSON_DATA["c_id"]));
-            $course = $db->getOne("courses");
+            $db->where('c.c_id', intval($JSON_DATA["c_id"]));
+            $db->join('enrollments e',  "e.c_id=c.c_id", "RIGHT");
+            $course = $db->getOne("courses c", "c.c_id, c_name, c_description, c_code, c_hashed_password, c_updated_at, c_created_at, u_role, c_banner_mime_type");
             $course['c_hashed_password'] = !is_null($course['c_hashed_password']);
             $course['c_banner'] = !is_null($course['c_banner_mime_type']);
             unset($course['c_banner_mime_type']);
@@ -57,15 +58,20 @@ try {
             break;
 
         case 'POST':
-            $JSON_DATA = json_decode(file_get_contents('php://input'), true);
-            if (isset($_SESSION['u_id']) && isset($JSON_DATA) && key_exists("c_name", $JSON_DATA) && key_exists("c_description", $JSON_DATA) && key_exists("c_privacy", $JSON_DATA)) {
+            if (isset($_SESSION['u_role'])) {
+                if ($_SESSION['u_role'] !== 'INSTRUCTOR') {
+                    echo jsonResponse(403, "You can't perform this action!");
+                }
+            }
+            if (isset($_SESSION['u_id']) && key_exists("c_name", $_POST) && key_exists("c_description", $_POST) && key_exists("c_privacy", $_POST)) {
                 $c_code = bin2hex(random_bytes(4));
-                $hash_password = key_exists("c_hashed_password", $JSON_DATA) ? password_hash($JSON_DATA["c_hashed_password"], PASSWORD_DEFAULT) : NULL;
+                $hash_password = key_exists("c_password", $_POST) ? password_hash($_POST["c_password"], PASSWORD_DEFAULT) : NULL;
                 $data = array(
-                    "c_name" => $JSON_DATA["c_name"],
+                    "c_name" => $_POST["c_name"],
                     "c_code" => $c_code,
                     "c_hashed_password" => $hash_password,
-                    "c_description" => $JSON_DATA["c_description"]
+                    "c_description" => $_POST["c_description"],
+                    "c_privacy" => $_POST['c_privacy']
                 );
                 if (isset($_FILES["c_banner"]) && $_FILES["c_banner"]["error"] == 0) {
                     $image = $_FILES["c_banner"]["tmp_name"];
@@ -77,7 +83,7 @@ try {
                     }
                 }
                 if ($db->insert('courses', $data)) {
-                    $db->where("c_name", $JSON_DATA["c_name"]);
+                    $db->where("c_name", $_POST["c_name"]);
                     $c_id = $db->getValue("courses", "c_id");
                     $enroll_data = array(
                         "c_id" => $c_id,
@@ -85,7 +91,7 @@ try {
                         "u_role" => "INSTRUCTOR"
                     );
                     $db->insert('enrollments', $enroll_data);
-                    echo jsonResponse(message: 'Course was created successfully!');
+                    echo jsonResponse(200, 'Course was created successfully!');
                 } else {
                     echo jsonResponse(400, "Fail to create course.");
                 }

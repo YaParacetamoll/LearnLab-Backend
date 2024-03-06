@@ -24,7 +24,8 @@ try {
 
                 $db->where('c_id', intval($_GET['c_id']));
                 $db->where('f_path', $_GET['f_path']);
-                $cols = array("f_id", "u_id", "f_mime_type", "f_type");
+                $db->where('f_privacy', 'PUBLIC');
+                $cols = array("f_id", "f_name", "u_id", "f_mime_type", "f_type", 'created_at', 'updated_at');
                 $listing = $db->get('files', null, $cols);
                 // echo json_encode(array("data" => $listing, "statement" => $db->getLastQuery()));
                 echo json_encode($listing);
