@@ -10,7 +10,7 @@ try {
             }
             $_PUT = json_decode(file_get_contents('php://input'), true);
             if (!isset($_PUT) && !key_exists("c_id", $_PUT) && !key_exists("a_name", $_PUT)); {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
             $data = array();
@@ -26,7 +26,7 @@ try {
             }
             $JSON = json_decode(file_get_contents('php://input'), true);
             if (!isset($JSON) && !key_exists("a_id", $JSON)); {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
             $data = array();
@@ -46,7 +46,7 @@ try {
                 $db->where('a_id', $_DELETE("a_id"));
                 echo ($db->delete("assignments")) ? jsonResponse(message: "ลบงานที่มอบหมายเรียบร้อบ") : jsonResponse(400, "ไม่สามารถลบงานที่มอบหมายได้");
             } else {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
     }

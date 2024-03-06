@@ -96,7 +96,7 @@ try {
                     echo jsonResponse(400, "Fail to create course.");
                 }
             } else {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
         case 'DELETE':
@@ -113,11 +113,11 @@ try {
                     echo jsonResponse(400, "Permission denied");
                 }
             } else {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
         default:
-            echo jsonResponse();
+            echo jsonResponse(405, 'ไม่อนุญาตให้ใช้ Method นี้');
     }
 } catch (Exception $e) {
     echo jsonResponse(500, $e->getMessage());

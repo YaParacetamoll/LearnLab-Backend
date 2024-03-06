@@ -9,7 +9,7 @@ try {
                 die();
             }
             if (!isset($_GET) && !key_exists("c_id", $_GET)) {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
             $db->join("submissions s", "s.p_id=p.p_id", "RIGHT");
@@ -24,7 +24,7 @@ try {
             }
             $_PUT = json_decode(file_get_contents('php://input'), true);
             if (!isset($_PUT) && !key_exists("c_id", $_PUT)) {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
             $data = array(
@@ -42,7 +42,7 @@ try {
             }
             $_DELETE = json_decode(file_get_contents('php://input'), true);
             if (!isset($_DELETE) && !key_exists("s_id", $_DELETE)) {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
             $db->where("s_id", $_DELETE['s_id']);
@@ -51,7 +51,7 @@ try {
             echo ($u_id == $_SESSION["u_id"] && $db->delete("submissions")) ? jsonResponse(message: "ยกเลิกการส่งเรียบร้อย") : jsonResponse(400, "ไม่สามารถยกเลิกการส่งได้");
             break;
         default:
-            echo jsonResponse();
+            echo jsonResponse(405, 'ไม่อนุญาตให้ใช้ Method นี้');
     }
 } catch (Exception $e) {
     echo jsonResponse(500, $e->getMessage());

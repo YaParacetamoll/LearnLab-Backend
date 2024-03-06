@@ -29,7 +29,7 @@ try {
                     echo jsonResponse(400, "You are not enrolled on that course.");
                 }
             } else {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
         case 'PUT':
@@ -58,7 +58,7 @@ try {
                     echo jsonResponse(400, "Permission denied"); //ไม่ได้เป็น TA หรือ INSTRUCTOR ใน course นั้นๆ
                 }
             } else {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
         case 'POST':
@@ -80,7 +80,7 @@ try {
                     echo jsonResponse(400, "Permission denied");
                 }
             } else {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
         case 'DELETE':
@@ -98,11 +98,11 @@ try {
                 $db->where('p_id', $_DELETE['p_id']);
                 echo ((intval($_SESSION['u_id']) == $post_info['u_id'] || ($user_role == 'INSTRUCTOR' && $post_info['u_role'] == 'TA')) && $db->delete('posts')) ? jsonResponse(message: "Post deleted successfully") : jsonResponse(400, "Permission denied");
             } else {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
         default:
-            echo jsonResponse();
+            echo jsonResponse(405, 'ไม่อนุญาตให้ใช้ Method นี้');
     }
 } catch (Exception $e) {
     echo jsonResponse(500, $e->getMessage());

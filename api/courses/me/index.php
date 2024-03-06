@@ -56,7 +56,7 @@ try {
             }
             break;
         default:
-            echo jsonResponse();
+            echo jsonResponse(405, 'ไม่อนุญาตให้ใช้ Method นี้');
     }
 } catch (Exception $e) {
     echo jsonResponse(500, $e->getMessage());

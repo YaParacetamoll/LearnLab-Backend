@@ -13,7 +13,7 @@ try {
                     $result
                 );
             } else {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
     }

@@ -25,7 +25,7 @@ try {
                     echo ($u_id) ? jsonResponse(message: "เข้าร่วมคอร์สสำเร็จ") : jsonResponse(400, "เข้าร่วมคอร์สล้มเหลว");
                 }
             } else {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
         case 'DELETE':
@@ -35,11 +35,11 @@ try {
                 $db->where("c_id", $_DELETE['c_id']);
                 echo ($db->delete("enrollments")) ? jsonResponse(message: "User unenroll the course successfully") : jsonResponse(400, "Fail to unenroll");
             } else {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
         default:
-            echo jsonResponse();
+            echo jsonResponse(405, 'ไม่อนุญาตให้ใช้ Method นี้');
     }
 } catch (Exception $e) {
     $error = explode(" ", $e->getMessage());

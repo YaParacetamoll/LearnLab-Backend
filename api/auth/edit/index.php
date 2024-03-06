@@ -32,7 +32,7 @@ try {
                 $db->where("u_id", $_SESSION['u_id']);
                 echo ($db->update('users', $data)) ? jsonResponse(message: "แก้ไขโปรไฟล์สำเร็จ") : jsonResponse(400, "แก้ไขโปรไฟล์ล้มเหลว");
             } else {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
     }

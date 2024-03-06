@@ -27,7 +27,7 @@ try {
                 $q_id = $db->insert('quizzes', $data);
                 echo ($q_id) ? jsonResponse(message: "สร้าง quiz เรียบร้อย!") : jsonResponse(400, "ไม่สามารถสร้าง quiz ได้");
             } else {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
         case "POST": // แก้ไข quiz
@@ -55,7 +55,7 @@ try {
                 $db->where("q_id", $JSON_DATA["q_id"]);
                 echo ($db->update("quizzes", $data)) ? jsonResponse(message: "บันทึกการแก้ไขแบบทดสอบ") : jsonResponse(400, "ไม่สามารถบันทึกการแก้ไขแบบทดสอบได้");
             } else {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
         case "DELETE": // ลบ quiz
@@ -75,11 +75,11 @@ try {
                 $db->where('q_id', $_DELETE("q_id"));
                 echo ($db->delete("quizzes")) ? jsonResponse(message: "ลบแบบทดสอบเรียบร้อบ") : jsonResponse(400, "ไม่สามารถลบแบบทดสอบได้");
             } else {
-                echo jsonResponse(400, "Invalid input");
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
         default:
-            echo jsonResponse();
+            echo jsonResponse(405, 'ไม่อนุญาตให้ใช้ Method นี้');
     }
 } catch (Exception $e) {
     echo jsonResponse(500, $e->getMessage());
