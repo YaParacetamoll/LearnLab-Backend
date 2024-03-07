@@ -20,14 +20,15 @@ try {
                     echo jsonResponse(403, "Unauthorized on this course");
                     die();
                 }
-
                 $db->join('users u', "u.u_id=f.u_id", "LEFT");
                 $db->where('c_id', intval($_GET['c_id']));
                 $db->where('f_path', $_GET['f_path']);
-                $db->where('f_privacy', 'PUBLIC');
+                if ($isAllow['u_role'] == "STUDENT") {
+                    $db->where('f_privacy', 'PUBLIC');
+                }
                 $db->orderBy('f_type', 'desc');
                 $db->orderBy('f_name', 'asc');
-                $cols = array("f.f_id", "f.f_name", "f.u_id", "u.u_firstname", "u.u_lastname" ,"f.f_mime_type", "f.f_type", 'f.created_at', 'f.updated_at');
+                $cols = array("f.f_id", "f.f_name", "f.u_id", "u.u_firstname", "u.u_lastname", "f.f_mime_type", "f.f_type", 'f.created_at', 'f.updated_at');
                 $listing = $db->get('files f', null, $cols);
                 echo json_encode($listing);
             } else if (key_exists("f_id", $_GET)) {
