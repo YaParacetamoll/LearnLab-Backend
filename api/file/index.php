@@ -28,7 +28,7 @@ try {
                 }
                 $db->orderBy('f_type', 'desc');
                 $db->orderBy('f_name', 'asc');
-                $cols = array("f.f_id", "f.f_name", "f.u_id", "u.u_firstname", "u.u_lastname", "f.f_mime_type", "f.f_type", 'f.created_at', 'f.updated_at');
+                $cols = array("f.f_id", "f.f_name", "f.u_id", "u.u_firstname", "u.u_lastname", "f.f_mime_type", "f.f_privacy", "f.f_type", 'f.created_at', 'f.updated_at');
                 $listing = $db->get('files f', null, $cols);
                 echo json_encode($listing);
             } else if (key_exists("f_id", $_GET)) {

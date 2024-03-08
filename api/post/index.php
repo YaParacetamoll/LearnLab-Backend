@@ -11,16 +11,17 @@ try {
                 if ($result) {
                     $output = array();
                     $db->where('p.c_id', $_GET['c_id']);
-                    $db->join("posts p", "u.u_id=p.u_id", "LEFT");
-                    $db->join("enrollments e", "e.u_id=p.u_id", "LEFT");
+                    $db->join("users u", "u.u_id=p.u_id", "LEFT");
+                    $db->join("enrollments e", "e.u_id=p.u_id AND e.c_id=p.c_id", "LEFT");
                     $cols = array("p_id, p_created_at, p_updated_at, p_title, p_content, p_item_list, p_type, p.u_id, e.u_role, u_firstname, u_lastname, u_avatar_mime_type");
-                    $posts = $db->get("users u", null, $cols);
+                    $posts = $db->get("posts p", null, $cols);
                     foreach (array_values($posts) as $i => $obj) {
                         $posts[$i]['u_avatar'] = !is_null($posts[$i]['u_avatar_mime_type']);
                         $posts[$i]['p_item_list'] = json_decode($posts[$i]['p_item_list']);
                         unset($posts[$i]['u_avatar_mime_type']);
                     }
                     $output["data"] = $posts;
+                    // $output["statement"] = $db->getLastQuery();
 
                     echo json_encode($output);
                 } else {
@@ -80,7 +81,7 @@ try {
             break;
         case 'DELETE':
             $_DELETE = json_decode(file_get_contents('php://input'), true);
-            //รับทั้ง u_id(id ของ user ที่เข้าใช้งานอยู่), c_id(่ของ course ที่ต้องการลบ post) และ p_id(post ที่ต้องการลบ) มา
+            // รับทั้ง u_id(id ของ user ที่เข้าใช้งานอยู่), c_id(่ของ course ที่ต้องการลบ post) และ p_id(post ที่ต้องการลบ) มา
             if (isset($_SESSION['u_id']) && isset($_DELETE) && key_exists("p_id", $_DELETE) && key_exists("c_id", $_DELETE)) {
                 $db->join("posts p", "p.u_id=e.u_id", "LEFT");
                 $db->where("p.p_id", $_DELETE['p_id']);
