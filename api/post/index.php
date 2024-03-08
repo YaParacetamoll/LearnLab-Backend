@@ -19,6 +19,25 @@ try {
                         $posts[$i]['u_avatar'] = !is_null($posts[$i]['u_avatar_mime_type']);
                         $posts[$i]['p_item_list'] = json_decode($posts[$i]['p_item_list']);
                         unset($posts[$i]['u_avatar_mime_type']);
+
+                        if (count($posts[$i]['p_item_list']->assignments) > 0) {
+                            $db->where('a_id', $posts[$i]['p_item_list']->assignments, 'IN');
+                            $cols = array("a_id", "a_name", "a_due_date", "a_score");                           
+                            $posts[$i]['p_item_list']->assignments = $db->get('assignments', null, $cols);
+                        }
+
+                        if (count($posts[$i]['p_item_list']->files) > 0) {
+                            $db->where('f_id', $posts[$i]['p_item_list']->files, 'IN');
+                            $db->orderBy('f_name', 'asc');
+                            $cols = array("f_id", "f_name", "f_mime_type");                           
+                            $posts[$i]['p_item_list']->files = $db->get('files', null, $cols);
+                        }
+
+                        if (count($posts[$i]['p_item_list']->quizzes) > 0) {
+                            $db->where('q_id', $posts[$i]['p_item_list']->quizzes, 'IN');
+                            $cols = array("q_id", "q_name", "q_due_date", "q_time_limit");                           
+                            $posts[$i]['p_item_list']->quizzes = $db->get('quizzes', null, $cols);
+                        }
                     }
                     $output["data"] = $posts;
                     // $output["statement"] = $db->getLastQuery();
