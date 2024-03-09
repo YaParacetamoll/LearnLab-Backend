@@ -108,7 +108,7 @@ try {
                     $db->where('c_id', $_DELETE['c_id']);
                     $clear_enrollment = ($db->delete('enrollments')) ? true : false;
                     $db->where('c_id', $_DELETE["c_id"]);
-                    echo ($clear_enrollment && $db->delete('courses')) ? jsonResponse(message: 'successfully deleted') : jsonResponse(400, "fail to delete course");
+                    echo ($clear_enrollment && $db->delete('courses')) ? jsonResponse('successfully deleted') : jsonResponse(400, "fail to delete course");
                 } else {
                     echo jsonResponse(400, "Permission denied");
                 }
