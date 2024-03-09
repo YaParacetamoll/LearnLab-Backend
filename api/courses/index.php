@@ -50,7 +50,7 @@ try {
             }
             $db->where('c.c_id', intval($JSON_DATA["c_id"]));
             $db->join('enrollments e',  "e.c_id=c.c_id", "RIGHT");
-            $course = $db->getOne("courses c", "c.c_id, c_name, c_description, c_code, c_hashed_password, c_updated_at, c_created_at, u_role, c_banner_mime_type");
+            $course = $db->getOne("courses c", "c.c_id, c_name, c_description, c_code, c_hashed_password, c_updated_at, c_created_at, u_role, c_privacy, c_banner_mime_type");
             $course['c_hashed_password'] = !is_null($course['c_hashed_password']);
             $course['c_banner'] = !is_null($course['c_banner_mime_type']);
             unset($course['c_banner_mime_type']);

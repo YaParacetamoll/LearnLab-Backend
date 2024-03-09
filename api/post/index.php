@@ -14,6 +14,7 @@ try {
                     $db->join("users u", "u.u_id=p.u_id", "LEFT");
                     $db->join("enrollments e", "e.u_id=p.u_id AND e.c_id=p.c_id", "LEFT");
                     $cols = array("p_id, p_created_at, p_updated_at, p_title, p_content, p_item_list, p_type, p.u_id, e.u_role, u_firstname, u_lastname, u_avatar_mime_type");
+                    $db->orderBy('p.p_created_at', 'desc');
                     $posts = $db->get("posts p", null, $cols);
                     foreach (array_values($posts) as $i => $obj) {
                         $posts[$i]['u_avatar'] = !is_null($posts[$i]['u_avatar_mime_type']);

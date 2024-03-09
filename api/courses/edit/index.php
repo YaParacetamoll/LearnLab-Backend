@@ -5,11 +5,11 @@ try {
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'POST': //multipart form
             if (!isset($_SESSION['u_id'])) {
-                jsonResponse(403, "Unauthenticated");
+                echo jsonResponse(403, "Unauthenticated");
                 die();
             }
-            if (!isset($_POST) && count($_POST) == 0 && key_exists("c_id", $_POST)) {
-                jsonResponse(400, "Invalid input");
+            if (!isset($_POST) || count($_POST) == 0 || !key_exists("c_id", $_POST)) {
+                echo jsonResponse(400, "Invalid input");
                 die();
             }
             $db->where("c_id", $_POST['c_id']);
@@ -23,6 +23,10 @@ try {
             foreach (array_keys($_POST) as $key) {
                 if ($key == "c_password") {
                     $data["c_hashed_password"] = password_hash($_POST[$key], PASSWORD_DEFAULT);
+                    continue;
+                }
+                if ($key == "c_remove_password") {
+                    $data["c_hashed_password"] = NULL;
                     continue;
                 }
                 $data[$key] = $_POST[$key];
