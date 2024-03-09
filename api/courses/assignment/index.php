@@ -2,12 +2,35 @@
 require_once '../../../initialize.php';
 
 try {
+    if (!isset($_SESSION['u_id'])) {
+        echo jsonResponse(403, "Unauthenticated");
+        die();
+    }
     switch ($_SERVER['REQUEST_METHOD']) {
-        case "PUT": //create assignment
-            if (!isset($_SESSION['u_id'])) {
-                echo jsonResponse(403, "Unauthenticated");
+        case "GET":
+            if (!isset($_GET['c_id'])) {
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
+            if (isset($_GET['a_id'])) {
+                $db->where('c_id', intval($_GET['c_id']));
+                $assignment = $db->get('assignments');
+
+                if (count($assignment['a_files']) > 0) {
+                    $db->where('f_id', $assignment['a_files'], 'IN');
+                    $db->orderBy('f_name', 'asc');
+                    $cols = array("f_id", "f_name", "f_mime_type");                           
+                    $assignment['a_files'] = $db->get('files', null, $cols);
+                }
+                echo ($assignment) ? json_encode($assignment) : jsonResponse(500, $db->getLastError());
+            } else {
+                $db->where('c_id', intval($_GET['c_id']));
+                $assignment = $db->get('assignments');
+                echo ($assignment) ? json_encode($assignment) : jsonResponse(500, $db->getLastError());
+            }
+            
+            break;
+        case "PUT": //create assignment
             $_PUT = json_decode(file_get_contents('php://input'), true);
             if (!isset($_PUT) && !key_exists("c_id", $_PUT) && !key_exists("a_name", $_PUT)); {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
@@ -37,10 +60,6 @@ try {
             echo ($db->update("assignments", $data)) ? jsonResponse(message: "แก้ไขงานที่มอบหมายเรียบร้อย") : jsonResponse(400, "ไม่สามารถแก้ไขได้");
             break;
         case "DELETE": //delete assignment
-            if (!isset($_SESSION['u_id'])) {
-                echo jsonResponse(403, "Unauthenticated");
-                die();
-            }
             $_DELETE = json_decode(file_get_contents('php://input'), true);
             if (isset($_DELETE) && key_exists("a_id", $_DELETE)) {
                 $db->where('a_id', $_DELETE("a_id"));

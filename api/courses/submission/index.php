@@ -2,12 +2,12 @@
 require_once '../../../initialize.php';
 
 try {
+    if (!isset($_SESSION['u_id'])) {
+        echo jsonResponse(403, "Unauthenticated");
+        die();
+    }
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'GET':
-            if (!isset($_SESSION['u_id'])) {
-                echo jsonResponse(403, "Unauthenticated");
-                die();
-            }
             if (!isset($_GET) && !key_exists("c_id", $_GET)) {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
