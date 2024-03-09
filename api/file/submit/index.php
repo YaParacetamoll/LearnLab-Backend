@@ -55,11 +55,11 @@ try {
                     echo jsonResponse(403, "Unauthorized on this course");
                     die();
                 }
-                $db_fs_path = '/submission/' . $a_id . "_" . $_SESSION['u_id'] . '/';
+                $db_fs_path = '/submission/' . $_POST['a_id'] . "_" . $_SESSION['u_id'] . '/';
                 $data = array(
                     "u_id" => $_SESSION['u_id'],
                     "c_id" => intval($_POST['c_id']),
-                    "f_name" => $a_id . "_" . $_SESSION['u_id'],
+                    "f_name" => $_POST['a_id'] . "_" . $_SESSION['u_id'],
                     "f_path" => '/submission/',
                     "f_privacy" => "PRIVATE",
                     "f_type" => 'FOLDER'
