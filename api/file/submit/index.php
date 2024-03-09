@@ -51,7 +51,7 @@ try {
                     die();
                 }
 
-                if ($isAllow['u_role'] == 'STUDENT') {
+                if ($isAllow['u_role'] != 'STUDENT') {
                     echo jsonResponse(403, "Unauthorized on this course");
                     die();
                 }
