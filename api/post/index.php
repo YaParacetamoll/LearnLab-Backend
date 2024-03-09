@@ -23,20 +23,20 @@ try {
 
                         if (count($posts[$i]['p_item_list']->assignments) > 0) {
                             $db->where('a_id', $posts[$i]['p_item_list']->assignments, 'IN');
-                            $cols = array("a_id", "a_name", "a_due_date", "a_score");                           
+                            $cols = array("a_id", "a_name", "a_due_date", "a_score");
                             $posts[$i]['p_item_list']->assignments = $db->get('assignments', null, $cols);
                         }
 
                         if (count($posts[$i]['p_item_list']->files) > 0) {
                             $db->where('f_id', $posts[$i]['p_item_list']->files, 'IN');
                             $db->orderBy('f_name', 'asc');
-                            $cols = array("f_id", "f_name", "f_mime_type");                           
+                            $cols = array("f_id", "f_name", "f_mime_type");
                             $posts[$i]['p_item_list']->files = $db->get('files', null, $cols);
                         }
 
                         if (count($posts[$i]['p_item_list']->quizzes) > 0) {
                             $db->where('q_id', $posts[$i]['p_item_list']->quizzes, 'IN');
-                            $cols = array("q_id", "q_name", "q_due_date", "q_time_limit");                           
+                            $cols = array("q_id", "q_name", "q_due_date", "q_time_limit");
                             $posts[$i]['p_item_list']->quizzes = $db->get('quizzes', null, $cols);
                         }
                     }
@@ -103,10 +103,6 @@ try {
             $_DELETE = json_decode(file_get_contents('php://input'), true);
             // รับทั้ง u_id(id ของ user ที่เข้าใช้งานอยู่), c_id(่ของ course ที่ต้องการลบ post) และ p_id(post ที่ต้องการลบ) มา
             if (isset($_SESSION['u_id']) && isset($_DELETE) && key_exists("p_id", $_DELETE) && key_exists("c_id", $_DELETE)) {
-                $db->where("p_id", $_DELETE["p_id"]);
-                $files = $db->getOne("posts", null, "p_item_list");
-                
-
                 $db->join("posts p", "p.u_id=e.u_id", "LEFT");
                 $db->where("p.p_id", $_DELETE['p_id']);
                 $db->where("e.c_id", $_DELETE['c_id']);
@@ -114,8 +110,23 @@ try {
                 $db->where("u_id", intval($_SESSION['u_id']));
                 $db->where("c_id", $_DELETE['c_id']);
                 $user_role = $db->getValue('enrollments', 'u_role');
-                $db->where('p_id', $_DELETE['p_id']);
-                echo ((intval($_SESSION['u_id']) == $post_info['u_id'] || ($user_role == 'INSTRUCTOR' && $post_info['u_role'] == 'TA')) && $db->delete('posts')) ? jsonResponse(message: "Post deleted successfully") : jsonResponse(400, "Permission denied");
+                if ($_SESSION['u_id'] == $post_info['u_id'] || ($user_role == 'INSTRUCTOR' && $post_info['u_role'] == 'TA')) {
+                    $db->where("p_id", $_DELETE["p_id"]);
+                    $p_item_list = json_decode($db->getValue("posts", "p_item_list"));
+                    if (count($p_item_list->files) > 0) {
+                        $db->where('f_id', $p_item_list->files, 'IN');
+                        if (!$db->delete("files")) {
+                            echo jsonResponse(400, "ไม่สามารถลบไฟล์ในโพสต์ได้");
+                            break;
+                        }
+                    }
+
+                    $db->where('p_id', $_DELETE['p_id']);
+                    echo ($db->delete('posts')) ? jsonResponse(message: "ลบโพสต์เรียบร้อยแล้ว") : jsonResponse(400, "ไม่สามารถลบโพสต์ได้");
+                } else {
+                    echo jsonResponse(403, "ไม่มีสิทธิ์ในการลบโพสต์");
+                    break;
+                }
             } else {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }

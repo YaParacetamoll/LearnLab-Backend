@@ -25,8 +25,9 @@ try {
                 }
                 echo ($assignment) ? json_encode($assignment) : jsonResponse(500, $db->getLastError());
             } else {
-                $db->where('c_id', intval($_GET['c_id']));
-                $assignment = $db->get('assignments');
+                $db->join("submissions_assignment s", "s.a_id=a.a_id", "LEFT");
+                $db->where('a.c_id', intval($_GET['c_id']));
+                $assignment = $db->get('assignments a', null, 'a.a_id, a.c_id, a.a_name, a.a_due_date, a.a_score, s.s_datetime');
                 echo ($assignment) ? json_encode($assignment) : jsonResponse(500, $db->getLastError());
             }
             
