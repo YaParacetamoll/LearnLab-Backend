@@ -103,11 +103,14 @@ try {
             $_DELETE = json_decode(file_get_contents('php://input'), true);
             // รับทั้ง u_id(id ของ user ที่เข้าใช้งานอยู่), c_id(่ของ course ที่ต้องการลบ post) และ p_id(post ที่ต้องการลบ) มา
             if (isset($_SESSION['u_id']) && isset($_DELETE) && key_exists("p_id", $_DELETE) && key_exists("c_id", $_DELETE)) {
+                $db->where("p_id", $_DELETE["p_id"]);
+                $files = $db->getOne("posts", null, "p_item_list");
+                
+
                 $db->join("posts p", "p.u_id=e.u_id", "LEFT");
                 $db->where("p.p_id", $_DELETE['p_id']);
                 $db->where("e.c_id", $_DELETE['c_id']);
                 $post_info = $db->getOne("enrollments e", null, "e.u_id, e.u_role");
-
                 $db->where("u_id", intval($_SESSION['u_id']));
                 $db->where("c_id", $_DELETE['c_id']);
                 $user_role = $db->getValue('enrollments', 'u_role');
