@@ -14,8 +14,9 @@ try {
             }
             if (isset($_GET['a_id'])) {
                 $db->where('c_id', intval($_GET['c_id']));
-                $assignment = $db->get('assignments');
-
+                $db->where('a_id', $_GET['a_id']);
+                $assignment = $db->getOne('assignments');
+                $assignment['a_files'] = json_decode($assignment['a_files']);
                 if (count($assignment['a_files']) > 0) {
                     $db->where('f_id', $assignment['a_files'], 'IN');
                     $db->orderBy('f_name', 'asc');

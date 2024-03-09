@@ -23,7 +23,7 @@ try {
                 die();
             }
             $_PUT = json_decode(file_get_contents('php://input'), true);
-            if (!isset($_PUT) && !key_exists("c_id", $_PUT)) {
+            if (!isset($_PUT) && !key_exists("p_id", $_PUT)) {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
