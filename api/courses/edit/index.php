@@ -21,6 +21,10 @@ try {
             }
             $data = array();
             foreach (array_keys($_POST) as $key) {
+                if ($key == "c_password") {
+                    $data["c_hashed_password"] = password_hash($_POST[$key], PASSWORD_DEFAULT);
+                    continue;
+                }
                 $data[$key] = $_POST[$key];
             }
             if (isset($_FILES["c_banner"]) && $_FILES["c_banner"]["error"] == 0) {
