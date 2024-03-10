@@ -48,18 +48,30 @@ try {
             }
             echo ($db->insert("submissions_assignment", $data)) ? jsonResponse(message: "บันทีกการส่งเรียบร้อย") : jsonResponse(400, "ไม่สามารถบันทีกการส่งได้");
             break;
-        case "DELETE": // ลบ submits
-            if (!isset($_SESSION['u_id'])) {
-                echo jsonResponse(403, "Unauthenticated");
+        case "PATCH": //ตรวจงาน
+            $_PATCH = json_decode(file_get_contents('php://input'), true);
+            if (!isset($_PATCH) && !key_exists("u_id", $_PATCH) && key_exists("a_id", $_PATCH)) {
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
+            $data = array("examiner_id" => intval($_SESSION["u_id"]));
+            foreach(array("s_feedback", "score") as $key) {
+                if (key_exists($key, $_PATCH)) {
+                    $data[$key] = $_PATCH[$key];
+                }
+            }
+            $db->where("u_id", $_PATCH["u_id"]);//u_id ของนักเรียน
+            $db->where("a_id", $_PATCH["a_id"]);
+            echo ($db->update("submissions_assignment", $data)) ? jsonResponse(message: "บันทึกการตรวจเรียบร้อย") : jsonResponse(400, "ไม่สามารถบันทีกได้");
+            break;
+        case "DELETE": // ลบ submits
             $_DELETE = json_decode(file_get_contents('php://input'), true);
             if (!isset($_DELETE) && !key_exists("a_id", $_DELETE)) {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
             $db->where("a_id", $_DELETE['a_id']);
-            $db->where("u_id", $_DELETE['u_id']);
+            $db->where("u_id", $_SESSION['u_id']);
             echo ($db->delete("submissions_assignment")) ? jsonResponse(message: "ยกเลิกการส่งเรียบร้อย") : jsonResponse(400, "ไม่สามารถยกเลิกการส่งได้");
             break;
         default:
