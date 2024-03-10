@@ -17,7 +17,11 @@ try {
             $db->where("c_id", $_GET["c_id"]);
             $db->orderBy("u.u_firstname", "asc");
             $db->orderBy("u.u_lastname", "asc");
-            $enrollment = $db->get("enrollments e", null, "e.*, u.u_firstname, u.u_lastname");
+            $enrollment = $db->get("enrollments e", null, "e.*, u_avatar_mime_type ,u.u_firstname, u.u_lastname");
+            foreach (array_values($enrollment) as $i => $obj) {
+                $enrollment[$i]['u_avatar'] = !is_null($enrollment[$i]['u_avatar_mime_type']);
+                unset($enrollment[$i]['u_avatar_mime_type']);
+            }
             echo ($enrollment) ? json_encode($enrollment) : jsonResponse(400, "ไม่มีสมาชิกในคอร์สนี้");
             break;
         case 'PUT':
@@ -54,9 +58,23 @@ try {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
+        case 'PATCH':
+            $JSON_DATA = json_decode(file_get_contents('php://input'), true);
+            if (isset($JSON_DATA) && key_exists("u_id", $JSON_DATA) && key_exists("c_id", $JSON_DATA) && key_exists("u_role", $JSON_DATA)) {
+                $db->where("u_id", $JSON_DATA['u_id']);
+                $db->where("c_id", $JSON_DATA['c_id']);
+                echo ($db->update("enrollments", array("u_role" => $JSON_DATA["u_role"]))) ? jsonResponse(message: "อัพเดทผู้ใช้สำเร็จ") : jsonResponse(400, "อัพเดทผู้ใช้ล้มเหลว");
+            } else {
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
+            }
+            break;
         case 'DELETE':
             $_DELETE = json_decode(file_get_contents('php://input'), true);
-            if (isset($_SESSION['u_id']) && isset($_DELETE) && key_exists("c_id", $_DELETE)) {
+            if (isset($_DELETE) && key_exists("c_id", $_DELETE) && key_exists("u_id", $_DELETE)) {
+                $db->where("u_id", $_DELETE['u_id']);
+                $db->where("c_id", $_DELETE['c_id']);
+                echo ($db->delete("enrollments")) ? jsonResponse(message: "ลบผู้ใช้ออกจากคอร์สสำเร็จ") : jsonResponse(400, "Fail to unenroll");
+            } else if (isset($_SESSION['u_id']) && isset($_DELETE) && key_exists("c_id", $_DELETE)) {
                 $db->where("u_id", $_SESSION['u_id']);
                 $db->where("c_id", $_DELETE['c_id']);
                 echo ($db->delete("enrollments")) ? jsonResponse(message: "User unenroll the course successfully") : jsonResponse(400, "Fail to unenroll");

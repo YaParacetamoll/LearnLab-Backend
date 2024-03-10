@@ -4,14 +4,15 @@ require_once '../../initialize.php';
 try {
     switch ($_SERVER['REQUEST_METHOD']) {
         case "GET":
-            if (!isset($_SESSION['u_id'])) {
-                echo jsonResponse(403, "Unauthenticated");
-                die();
-            }
-            if (isset($_GET) && key_exists("c_id", $_GET)) {
+            // if (!isset($_SESSION['u_id'])) {
+            //     echo jsonResponse(403, "Unauthenticated");
+            //     die();
+            // }
+            if (isset($_GET) && key_exists("c_id", $_GET) && key_exists("p_receiver", $_GET)) {
                 $db->join("messages c1", "c1.m_thread=c2.m_id", "RIGHT");
                 $db->join("posts p", "c1.p_receiver=p.p_id", "LEFT");
                 $db->where("c_id", $_GET['c_id']);
+                $db->where("c1.p_receiver", $_GET['p_receiver']);
                 $db->orderBy("c1.m_thread, c1.m_id", "asc");
                 $messages = $db->get("messages c2", null, "c1.*, p.c_id, c2.m_content AS parent_content");
                 // echo json_encode($messages);
