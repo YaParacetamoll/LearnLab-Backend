@@ -40,33 +40,35 @@ try {
                 $assignment = $db->get('assignments a', null, 'a.a_id, a.c_id, a.a_name, a.a_due_date, a.a_score, s.s_datetime');
                 echo json_encode($assignment);
             }
-            
             break;
         case "PUT": //create assignment
             $_PUT = json_decode(file_get_contents('php://input'), true);
-            if (!isset($_PUT) && !key_exists("c_id", $_PUT) && !key_exists("a_name", $_PUT)); {
+            if (!key_exists("c_id", $_PUT) || !key_exists("a_name", $_PUT)) {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
+            
             $data = array();
             foreach (array_keys($_PUT) as $key) {
                 $data[$key] = ($key == "a_files") ? json_encode($_PUT[$key]) : $_PUT[$key];
             }
             echo ($db->insert("assignments", $data)) ? jsonResponse(message: "มอบหมายงานภายในคอร์สเรียบร้อย") : jsonResponse(400, "ไม่สามารถมอบหมายงานได้");
             break;
-        case "POST": //edit assignment
+        case "PATCH": //edit assignment
+            $JSON = json_decode(file_get_contents('php://input'), true);
+
             if (!isset($_SESSION['u_id'])) {
                 echo jsonResponse(403, "Unauthenticated");
                 die();
             }
-            $JSON = json_decode(file_get_contents('php://input'), true);
-            if (!isset($JSON) && !key_exists("a_id", $JSON)); {
+            if (!isset($JSON) && !key_exists("a_id", $JSON)) {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
+            
             $data = array();
-            foreach (array_keys($_PUT) as $key) {
-                $data[$key] = ($key == "a_files") ? json_encode($_PUT[$key]) : $_PUT[$key];
+            foreach (array_keys($JSON) as $key) {
+                $data[$key] = ($key == "a_files") ? json_encode($JSON[$key]) : $JSON[$key];
             }
             $db->where("a_id", $JSON['a_id']);
             echo ($db->update("assignments", $data)) ? jsonResponse(message: "แก้ไขงานที่มอบหมายเรียบร้อย") : jsonResponse(400, "ไม่สามารถแก้ไขได้");
@@ -74,7 +76,38 @@ try {
         case "DELETE": //delete assignment
             $_DELETE = json_decode(file_get_contents('php://input'), true);
             if (isset($_DELETE) && key_exists("a_id", $_DELETE)) {
-                $db->where('a_id', $_DELETE("a_id"));
+                $db->where("a_id", $_DELETE["a_id"]);
+                $p_files = json_decode($db->getValue("assignments", "a_files"));
+                if (count($p_files) > 0) {
+                    $db->where('f_id', $p_files, 'IN');
+                    if (!$db->delete("files")) {
+                        echo jsonResponse(400, "ไม่สามารถลบไฟล์ในโพสต์ได้");
+                        break;
+                    }
+                }
+
+                $db->where("a_id", intval($_DELETE["a_id"]));
+                $sub_files = $db->get("submissions_assignment", null,"s_content");
+                $sub_file_list = array();
+                foreach ($sub_files as $files) {
+                    $data = json_decode($files["s_content"]);
+                    $sub_file_list = array_merge($sub_file_list, $data->files);
+                }
+                if (count($sub_file_list) > 0) {
+                    $db->where('f_id', $sub_file_list, 'IN');
+                    if (!$db->delete("files")) {
+                        echo jsonResponse(400, "ไม่สามารถลบไฟล์ใน Assignment ได้");
+                        break;
+                    }
+                }
+
+                $db->where('a_id', intval($_DELETE["a_id"]));
+                if (!$db->delete("submissions_assignment")) {
+                    echo jsonResponse(400, "ไม่สามารถลบ Assignment");
+                    break;
+                }
+
+                $db->where('a_id', intval($_DELETE["a_id"]));
                 echo ($db->delete("assignments")) ? jsonResponse(message: "ลบงานที่มอบหมายเรียบร้อบ") : jsonResponse(400, "ไม่สามารถลบงานที่มอบหมายได้");
             } else {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");

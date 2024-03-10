@@ -35,8 +35,8 @@ try {
                 $col = array(
                     "a_id", "u.u_firstname", "u.u_lastname", "s_datetime"
                 );
-                $submissions = $db->rawQuery("SELECT e.u_id, s.a_id, u.u_firstname, u.u_lastname, u.u_avatar_mime_type, s_datetime FROM enrollments e LEFT JOIN
-            (SELECT e.u_id, a_id, s_datetime FROM enrollments e LEFT OUTER JOIN submissions_assignment s on e.u_id=s.u_id WHERE  e.c_id=?  AND e.u_role = 'STUDENT' AND a_id=?) AS s
+                $submissions = $db->rawQuery("SELECT e.u_id, s.a_id, u.u_firstname, u.u_lastname, u.u_avatar_mime_type, s.score, s_datetime FROM enrollments e LEFT JOIN
+            (SELECT e.u_id, a_id, s_datetime, s.score FROM enrollments e LEFT OUTER JOIN submissions_assignment s on e.u_id=s.u_id WHERE  e.c_id=?  AND e.u_role = 'STUDENT' AND a_id=?) AS s
             ON e.u_id=s.u_id LEFT JOIN users u ON u.u_id=e.u_id WHERE e.c_id=? AND e.u_role = 'STUDENT'", array($_GET['c_id'], $_GET['a_id'], $_GET['c_id']));
                 foreach (array_values($submissions) as $i => $obj) {
                     $submissions[$i]['u_avatar'] = !is_null($submissions[$i]['u_avatar_mime_type']);
