@@ -17,7 +17,7 @@ try {
             $db->where("c_id", $_GET["c_id"]);
             $db->orderBy("u.u_firstname", "asc");
             $db->orderBy("u.u_lastname", "asc");
-            $enrollment = $db->get("enrollments e", null, "e.*, u_avatar_mime_type ,u.u_firstname, u.u_lastname");
+            $enrollment = $db->get("enrollments e", null, "e.*, u_avatar_mime_type ,u.u_firstname, u.u_lastname, u.u_email");
             foreach (array_values($enrollment) as $i => $obj) {
                 $enrollment[$i]['u_avatar'] = !is_null($enrollment[$i]['u_avatar_mime_type']);
                 unset($enrollment[$i]['u_avatar_mime_type']);
