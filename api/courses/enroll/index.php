@@ -8,6 +8,18 @@ try {
         die();
     }
     switch ($_SERVER['REQUEST_METHOD']) {
+        case 'GET':
+            if (!isset($_GET) && !key_exists("c_id", $_GET)) {
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
+                die();
+            }
+            $db->join("users u", "u.u_id=e.u_id", "LEFT");
+            $db->where("c_id", $_GET["c_id"]);
+            $db->orderBy("u.u_firstname", "asc");
+            $db->orderBy("u.u_lastname", "asc");
+            $enrollment = $db->get("enrollments e", null, "e.*, u.u_firstname, u.u_lastname");
+            echo ($enrollment) ? json_encode($enrollment) : jsonResponse(400, "ไม่มีสมาชิกในคอร์สนี้");
+            break;
         case 'PUT':
             $_PUT = json_decode(file_get_contents('php://input'), true);
             if (!isset($_PUT) && !key_exists("c_code", $_PUT)) {
