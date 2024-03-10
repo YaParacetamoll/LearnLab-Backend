@@ -67,12 +67,12 @@ try {
                 die();
             }
             $data = array("examiner_id" => intval($_SESSION["u_id"]));
-            foreach(array("s_feedback", "score") as $key) {
+            foreach (array("s_feedback", "score") as $key) {
                 if (key_exists($key, $_PATCH)) {
                     $data[$key] = $_PATCH[$key];
                 }
             }
-            $db->where("u_id", $_PATCH["u_id"]);//u_id ของนักเรียน
+            $db->where("u_id", $_PATCH["u_id"]); //u_id ของนักเรียน
             $db->where("a_id", $_PATCH["a_id"]);
             echo ($db->update("submissions_assignment", $data)) ? jsonResponse(message: "บันทึกการตรวจเรียบร้อย") : jsonResponse(400, "ไม่สามารถบันทีกได้");
             break;
@@ -81,6 +81,15 @@ try {
             if (!isset($_DELETE) && !key_exists("a_id", $_DELETE)) {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
+            }
+            $db->where("a_id", $_DELETE["a_id"]);
+            $s_content = json_decode($db->getValue("submissions_assignment", "s_content"));
+            if (count($s_content->files) > 0) {
+                $db->where('f_id', $s_content->files, 'IN');
+                if (!$db->delete("files")) {
+                    echo jsonResponse(400, "ไม่สามารถลบไฟล์ในโพสต์ได้");
+                    break;
+                }
             }
             $db->where("a_id", $_DELETE['a_id']);
             $db->where("u_id", $_SESSION['u_id']);
