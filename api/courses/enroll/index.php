@@ -3,7 +3,21 @@ require_once '../../../vendor/autoload.php';
 require_once '../../../initialize.php';
 
 try {
+    if (!isset($_SESSION['u_id'])) {
+        echo jsonResponse(403, "Unauthenticated");
+        die();
+    }
     switch ($_SERVER['REQUEST_METHOD']) {
+        case 'PUT':
+            $_PUT = json_decode(file_get_contents('php://input'), true);
+            if (!isset($_PUT) && !key_exists("c_code", $_PUT)) {
+                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
+                die();
+            }
+            $db->where("c_code", $_PUT['c_code']);
+            $course = $db->getOne("courses", "c_id, c_name, c_description, c_hashed_password");
+            echo ($course) ? json_encode($course) : jsonResponse(400, "ไม่พบคอร์ส");
+            break;
         case 'POST':
             $JSON_DATA = json_decode(file_get_contents('php://input'), true);
             if (isset($_SESSION['u_id']) && isset($JSON_DATA) && key_exists("c_id", $JSON_DATA)) {
