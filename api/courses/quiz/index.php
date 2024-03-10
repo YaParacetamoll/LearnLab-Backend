@@ -72,7 +72,7 @@ try {
                     echo jsonResponse(400, "คุณไม่มีสิทธิ์ในการลบแบบทดสอบ");
                     die();
                 }
-                $db->where('q_id', $_DELETE("q_id"));
+                $db->where('q_id', $_DELETE["q_id"]);
                 echo ($db->delete("quizzes")) ? jsonResponse(message: "ลบแบบทดสอบเรียบร้อบ") : jsonResponse(400, "ไม่สามารถลบแบบทดสอบได้");
             } else {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
