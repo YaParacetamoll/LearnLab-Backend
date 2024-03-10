@@ -83,6 +83,7 @@ try {
                 die();
             }
             $db->where("a_id", $_DELETE["a_id"]);
+            $db->where("u_id", $_SESSION["u_id"]);
             $s_content = json_decode($db->getValue("submissions_assignment", "s_content"));
             if (count($s_content->files) > 0) {
                 $db->where('f_id', $s_content->files, 'IN');

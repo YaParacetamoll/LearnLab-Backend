@@ -13,22 +13,32 @@ try {
                 die();
             }
             if (isset($_GET['a_id'])) {
-                $db->where('c_id', intval($_GET['c_id']));
-                $db->where('a_id', $_GET['a_id']);
-                $assignment = $db->getOne('assignments');
+                $db->where('a.c_id', intval($_GET['c_id']));
+                $db->where('a.a_id', $_GET['a_id']);
+                $db->join('submissions_assignment s', 's.a_id=a.a_id AND s.u_id='. $_SESSION['u_id'], 'LEFT');
+                $assignment = $db->getOne('assignments a');
                 $assignment['a_files'] = json_decode($assignment['a_files']);
+                $assignment['s_content'] = json_decode($assignment['s_content']);
                 if (count($assignment['a_files']) > 0) {
                     $db->where('f_id', $assignment['a_files'], 'IN');
                     $db->orderBy('f_name', 'asc');
                     $cols = array("f_id", "f_name", "f_mime_type");                           
                     $assignment['a_files'] = $db->get('files', null, $cols);
                 }
-                echo ($assignment) ? json_encode($assignment) : jsonResponse(500, $db->getLastError());
+                if (isset($assignment['s_content']) && count($assignment['s_content']->files) > 0) {
+                    $db->where('f_id', $assignment['s_content']->files, 'IN');
+                    $db->orderBy('f_name', 'asc');
+                    $cols = array("f_id", "f_name", "f_mime_type");                           
+                    $assignment['s_content']->files = $db->get('files', null, $cols);
+                } else if (!isset($assignment['s_content'])) {
+                    $assignment['s_content'] = json_decode ("{}");
+                }
+                echo json_encode($assignment);
             } else {
-                $db->join("submissions_assignment s", "s.a_id=a.a_id", "LEFT");
+                $db->join("submissions_assignment s", "s.a_id=a.a_id AND s.u_id=" . $_SESSION['u_id'], "LEFT");
                 $db->where('a.c_id', intval($_GET['c_id']));
                 $assignment = $db->get('assignments a', null, 'a.a_id, a.c_id, a.a_name, a.a_due_date, a.a_score, s.s_datetime');
-                echo ($assignment) ? json_encode($assignment) : jsonResponse(500, $db->getLastError());
+                echo json_encode($assignment);
             }
             
             break;

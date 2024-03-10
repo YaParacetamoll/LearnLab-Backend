@@ -91,7 +91,20 @@ try {
             break;
         case 'DELETE':
             $JSON_DATA = json_decode(file_get_contents('php://input'), true);
-            if (key_exists("f_id", $JSON_DATA) && key_exists("f_type", $JSON_DATA)) {
+            if (key_exists("f_id", $JSON_DATA) && key_exists("c_id", $JSON_DATA) && key_exists("f_type", $JSON_DATA)) {
+
+                $db->where('u_id', $_SESSION['u_id']);
+                $db->where('c_id', $JSON_DATA['c_id']);
+                $isAllow = $db->getOne('enrollments');
+
+                if (is_null($isAllow)) {
+                    echo jsonResponse(403, "Unauthorized on this course");
+                    die();
+                } else if ($isAllow['u_role'] === 'STUDENT') {
+                    echo jsonResponse(403, "Unauthorized on this course");
+                    die();
+                }
+
                 if ($JSON_DATA['f_type'] === 'FILE') $db->where('f_id', $JSON_DATA['f_id']); // Delete Single File
                 else if ($JSON_DATA['f_type'] === 'FOLDER') { // Delete Folder and All Files inside it
                     $db->where('f_id', $JSON_DATA['f_id']);
