@@ -14,6 +14,7 @@ try {
             }
             $db->join("users u", "u.u_id=e.u_id", "LEFT");
             $db->where("c_id", $_GET["c_id"]);
+            $db->orderBy("e.u_role", "desc");
             $db->orderBy("u.u_firstname", "asc");
             $db->orderBy("u.u_lastname", "asc");
             $enrollment = $db->get("enrollments e", null, "e.*, u_avatar_mime_type ,u.u_firstname, u.u_lastname");
