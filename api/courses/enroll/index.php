@@ -32,7 +32,18 @@ try {
             }
             $db->where("c_code", $_PUT['c_code']);
             $course = $db->getOne("courses", "c_id, c_name, c_description, c_hashed_password");
-            echo ($course) ? json_encode($course) : jsonResponse(400, "ไม่พบคอร์ส");
+            if ($course) {
+                $db->where('c_id', $course['c_id']);
+                $db->where('u_id', $_SESSION['u_id']);
+                $check = $db->getOne("enrollments", "c_id");
+                if ($check) {
+                    echo jsonResponse(400, "คุณได้ลงทะเบียนคอร์สนี้แล้ว");
+                    die();
+                }
+                echo json_encode($course);
+            } else {
+                echo jsonResponse(400, "ไม่พบคอร์ส");
+            }
             break;
         case 'POST':
             $JSON_DATA = json_decode(file_get_contents('php://input'), true);
