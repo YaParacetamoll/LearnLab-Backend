@@ -8,7 +8,11 @@ try {
                 $db->where("c_id", $_GET['c_id']);
                 $db->where("q_id", $_GET['q_id']);
                 $result = $db->getOne('quizzes');
-                if (isset($_GET['u_id'])) {
+                
+                $db->where("u_id", $_SESSION["u_id"]);
+                $db->where("c_id", $_GET["c_id"]);
+                $role = $db->getValue("enrollments", "u_role");
+                if ($role == "STUDENT") {
                     foreach ($result['q_items'] as $question) {
                         unset($question->correct);
                     }
