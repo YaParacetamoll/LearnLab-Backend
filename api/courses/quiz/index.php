@@ -24,9 +24,13 @@ try {
             } else if (isset($_SESSION['u_id']) && isset($_GET['c_id'])) {
                 $db->join("submissions_quiz s", "s.q_id=q.q_id AND s.u_id=" . $_SESSION['u_id'], "LEFT");
                 $db->where('q.c_id', intval($_GET['c_id']));
-                $result = $db->get('quizzes q', null, 'q.q_id, q.q_name, q.q_begin_date, q.q_due_date, s.s_datetime, s.score');
+                $quizs = $db->get('quizzes q', null, 'q.q_id, q.q_name, q.q_begin_date, q.q_due_date, q.q_items, s.s_datetime, s.score');
+                foreach ($quizs as $i => $obj) {
+                    $quizs[$i]["q_items"] = json_decode($quizs[$i]["q_items"]);
+                    $quizs[$i]["full_score"] = count($quizs[$i]["q_items"]);
+                }
                 echo json_encode(
-                    $result
+                    $quizs
                 );
             } else {
                 echo jsonResponse(400, "คุณไม่มีสิทธิ์ในการสร้างแบบทดสอบ");
@@ -80,6 +84,7 @@ try {
                         $data[$key] = json_encode($JSON_DATA[$key]);
                         continue;
                     }
+                    $data[$key] = $JSON_DATA[$key];
                 }
                 $db->where("q_id", $JSON_DATA["q_id"]);
                 echo ($db->update("quizzes", $data)) ? jsonResponse(message: "บันทึกการแก้ไขแบบทดสอบสำเร็จ") : jsonResponse(400, "ไม่สามารถบันทึกการแก้ไขแบบทดสอบได้");

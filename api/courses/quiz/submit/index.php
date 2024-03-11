@@ -24,7 +24,9 @@ try {
                 echo json_encode(array("data" => $submissions));
             }
             $db->where('q_id', $_GET['q_id']);
-            $quiz_data = $db->getOne('quizzes', "q_due_date, q_name, q_begin_date");
+            $quiz_data = $db->getOne('quizzes', "q_due_date, q_name, q_begin_date, q_items");
+            $quiz_data["q_items"] = json_decode($quiz_data["q_items"]);
+            $quiz_data["full_score"] = count($quiz_data["q_items"]);
             $submissions = $db->rawQuery("SELECT e.u_id, s.q_id, u.u_firstname, u.u_lastname, u.u_avatar_mime_type, s.score, s_datetime FROM enrollments e LEFT JOIN
             (SELECT e.u_id, q_id, s_datetime, s.score FROM enrollments e LEFT OUTER JOIN submissions_quiz s on e.u_id=s.u_id WHERE  e.c_id=?  AND e.u_role = 'STUDENT' AND q_id=?) AS s
             ON e.u_id=s.u_id LEFT JOIN users u ON u.u_id=e.u_id WHERE e.c_id=? AND e.u_role = 'STUDENT'", array($_GET['c_id'], $_GET['q_id'], $_GET['c_id']));
