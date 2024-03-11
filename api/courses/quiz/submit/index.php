@@ -37,19 +37,28 @@ try {
             break;
         case 'PUT': //submit
             $_PUT = json_decode(file_get_contents('php://input'), true);
-            if (!isset($_PUT) && !key_exists("c_id", $_GET) && !key_exists("q_id", $_GET) && !key_exists("s_content", $_PUT)) {
+            if (!isset($_PUT) && !key_exists("c_id", $_PUT) && !key_exists("q_id", $_PUT) && !key_exists("s_content", $_PUT)) {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
             $score = 0;
             $db->where("q_id", $_PUT["q_id"]);
             $q_items = json_decode($db->getValue("quizzes", "q_items"));
-            for($i=0;$i < count($q_items);$i++) {
-                if (isset($_PUT["s_content"][$i]) && ($q_items[$i]->correct-1) == $_PUT["s_content"][$i]) {
+            for($i=0;$i < count($q_items);$i++) {  
+                $ans = ($q_items[$i]->type == "CHOICE") ? $q_items[$i]->correct : $q_items[$i]->correct;
+                if (isset($_PUT["s_content"][$i]) && $ans == $_PUT["s_content"][$i]) {
                     $score++;
                 }
             }
-            echo json_encode(array("score" => $score));
+            $data = array(
+                "q_id" => $_PUT["q_id"],
+                "u_id" => $_SESSION["u_id"],
+                "c_id" => $_PUT["c_id"],
+                "s_content" => json_encode($_PUT["s_content"]),
+                "score" => $score
+            );
+            echo ($db->insert("submissions_quiz", $data)) ? json_encode(array("message" => "บันทีกการส่งแบบทดสอบเรียบร้อย", "std_score" => $score, "full_score" => count($q_items))) : jsonResponse(400, "ไม่สามารถบันทึกการส่งแบบทดสอบได้");
+            // echo json_encode(array("score" => $score));
             break;
         case "DELETE": // ลบ submits
             $_DELETE = json_decode(file_get_contents('php://input'), true);
