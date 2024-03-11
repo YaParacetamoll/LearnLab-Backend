@@ -8,9 +8,10 @@ try {
                 $db->where("c_id", $_GET['c_id']);
                 $db->where("q_id", $_GET['q_id']);
                 $result = $db->getOne('quizzes');
-                $result['q_items'] = json_decode($result['q_items']);
-                foreach($result['q_items'] as $question) {
-                    unset($question->correct);
+                if (isset($_GET['u_id'])) {
+                    foreach ($result['q_items'] as $question) {
+                        unset($question->correct);
+                    }
                 }
                 echo json_encode(
                     $result

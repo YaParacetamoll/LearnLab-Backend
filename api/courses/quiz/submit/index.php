@@ -45,11 +45,11 @@ try {
             $db->where("q_id", $_PUT["q_id"]);
             $q_items = json_decode($db->getValue("quizzes", "q_items"));
             for($i=0;$i < count($q_items);$i++) {
-                if (isset($_PUT["s_content"][$i]) && $q_items[$i]->correct == $_PUT["s_content"][$i]) {
+                if (isset($_PUT["s_content"][$i]) && ($q_items[$i]->correct-1) == $_PUT["s_content"][$i]) {
                     $score++;
                 }
             }
-            echo json_encode(array());
+            echo json_encode(array("score" => $score));
             break;
         case "DELETE": // ลบ submits
             $_DELETE = json_decode(file_get_contents('php://input'), true);
