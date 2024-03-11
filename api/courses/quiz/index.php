@@ -22,8 +22,9 @@ try {
                     $result
                 );
             } else if (isset($_SESSION['u_id']) && isset($_GET['c_id'])) {
-                $db->where("c_id", $_GET['c_id']);
-                $result = $db->get('quizzes', null, 'q_id, q_name, q_begin_date, q_due_date');
+                $db->join("submissions_quiz s", "s.q_id=q.q_id AND s.u_id=" . $_SESSION['u_id'], "LEFT");
+                $db->where('q.c_id', intval($_GET['c_id']));
+                $result = $db->get('quizzes q', null, 'q.q_id, q.q_name, q.q_begin_date, q.q_due_date, s.s_datetime, s.score');
                 echo json_encode(
                     $result
                 );
