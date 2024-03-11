@@ -19,12 +19,6 @@ try {
                 $db->join('quizzes a', 'a.q_id=sa.q_id', 'LEFT');
                 $submissions = $db->getOne("submissions_quiz sa", "a.q_due_date, a.q_begin_date, a.q_score, a.q_name ,sa.* ,u_firstname, u_lastname, u_avatar_mime_type");
                 $submissions["s_content"] = json_decode($submissions["s_content"]);
-                // if (count($submissions["s_content"]->files) > 0) {
-                //     $db->where('f_id', $submissions["s_content"]->files, 'IN');
-                //     $db->orderBy('f_name', 'asc');
-                //     $cols = array("f_id", "f_name", "f_mime_type");
-                //     $submissions["s_content"]->files = $db->get('files', null, $cols);
-                // }
                 $submissions['u_avatar'] = !is_null($submissions['u_avatar_mime_type']);
                 unset($submissions['u_avatar_mime_type']);
                 echo json_encode(array("data" => $submissions));
