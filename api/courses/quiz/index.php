@@ -22,16 +22,25 @@ try {
                     $result
                 );
             } else if (isset($_SESSION['u_id']) && isset($_GET['c_id'])) {
-                $db->join("submissions_quiz s", "s.q_id=q.q_id AND s.u_id=" . $_SESSION['u_id'], "LEFT");
-                $db->where('q.c_id', intval($_GET['c_id']));
-                $quizs = $db->get('quizzes q', null, 'q.q_id, q.q_name, q.q_begin_date, q.q_due_date, q.q_items, s.s_datetime, s.score');
-                foreach ($quizs as $i => $obj) {
-                    $quizs[$i]["q_items"] = json_decode($quizs[$i]["q_items"]);
-                    $quizs[$i]["full_score"] = count($quizs[$i]["q_items"]);
+                $db->where("u_id", $_SESSION["u_id"]);
+                $db->where("c_id", $_GET["c_id"]);
+                $role = $db->getValue("enrollments", "u_role");
+                $quizs = array();
+                if ($role == "STUDENT") {
+                    $db->join("submissions_quiz s", "s.q_id=q.q_id AND s.u_id=" . $_SESSION['u_id'], "LEFT");
+                    $db->where('q.c_id', intval($_GET['c_id']));
+                    $quizs = $db->get('quizzes q', null, 'q.q_id, q.q_name, q.q_begin_date, q.q_due_date, q.q_items, s.s_datetime, s.score');
+                    foreach ($quizs as $i => $obj) {
+                        $quizs[$i]["q_items"] = json_decode($quizs[$i]["q_items"]);
+                        $quizs[$i]["full_score"] = count($quizs[$i]["q_items"]);
+                    }
+                } else if (in_array($role, array("INSTRUCTOR", "TA"))) {
+                    $db->where("c_id", intval($_GET['c_id']));
+                    $quizs = $db->get('quizzes', null, "q_id, q_name, q_begin_date, q_due_date");
                 }
                 echo json_encode(
-                    $quizs
-                );
+                        $quizs
+                    );
             } else {
                 echo jsonResponse(400, "คุณไม่มีสิทธิ์ในการสร้างแบบทดสอบ");
                 die();
