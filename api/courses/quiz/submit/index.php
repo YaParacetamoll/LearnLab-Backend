@@ -8,7 +8,7 @@ try {
     }
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'GET':
-            if (!isset($_GET) && !key_exists("c_id", $_GET) && key_exists("q_id", $_GET)) {
+            if (!isset($_GET) && !key_exists("c_id", $_GET) && !key_exists("q_id", $_GET)) {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
