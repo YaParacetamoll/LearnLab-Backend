@@ -92,8 +92,19 @@ try {
             }
             $db->where("m_id", $_DELETE["m_id"]);
             $m_sender = $db->getValue("messages", "m_sender");
+            
+            $db->where("m_thread", $_DELETE["m_id"]);
+            $reply = $db->get("messages", null, "m_id");
+
             $db->where("m_id", $_DELETE["m_id"]);
-            echo (!strcmp($m_sender, $_SESSION['u_id']) && $db->update("messages", array('m_content' => "ข้อความนี้ถูกลบแล้ว"))) ? jsonResponse(message: "ลบข้อความเรียบร้อย") : jsonResponse(400, "ไม่สามารถลบข้อความได้");
+            if (!strcmp($m_sender, $_SESSION['u_id']) && count($reply) > 0 && $db->update("messages", array('m_content' => "ข้อความนี้ถูกลบแล้ว"))) {
+                echo jsonResponse(message: "ลบข้อความเรียบร้อย");
+            } else if (!strcmp($m_sender, $_SESSION['u_id']) && count($reply) == 0 && $db->delete("messages")) {
+                echo jsonResponse(message: "ลบข้อความตอบกลับเรียบร้อย");
+            } else {
+                echo jsonResponse(400, "ไม่สามารถลบข้อความได้");
+            }
+            // echo (!strcmp($m_sender, $_SESSION['u_id']) && $count > 0 && $db->update("messages", array('m_content' => "ข้อความนี้ถูกลบแล้ว"))) ? jsonResponse(message: "ลบข้อความเรียบร้อย") : jsonResponse(400, "ไม่สามารถลบข้อความได้");
             break;
     }
 } catch (Exception $e) {
