@@ -12,6 +12,23 @@ try {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
+            if (key_exists("u_id", $_GET)) {
+                $db->where('sa.q_id', $_GET['q_id']);
+                $db->where('sa.u_id', $_GET['u_id']);
+                $db->join('users u', 'u.u_id=sa.u_id', 'LEFT');
+                $db->join('quizzes a', 'a.q_id=sa.q_id', 'LEFT');
+                $submissions = $db->getOne("submissions_quiz sa", "a.q_due_date, a.q_begin_date, a.q_score, a.q_name ,sa.* ,u_firstname, u_lastname, u_avatar_mime_type");
+                $submissions["s_content"] = json_decode($submissions["s_content"]);
+                // if (count($submissions["s_content"]->files) > 0) {
+                //     $db->where('f_id', $submissions["s_content"]->files, 'IN');
+                //     $db->orderBy('f_name', 'asc');
+                //     $cols = array("f_id", "f_name", "f_mime_type");
+                //     $submissions["s_content"]->files = $db->get('files', null, $cols);
+                // }
+                $submissions['u_avatar'] = !is_null($submissions['u_avatar_mime_type']);
+                unset($submissions['u_avatar_mime_type']);
+                echo json_encode(array("data" => $submissions));
+            }
             $db->where('q_id', $_GET['q_id']);
             $quiz_data = $db->getOne('quizzes', "q_due_date, q_name, q_begin_date");
             $submissions = $db->rawQuery("SELECT e.u_id, s.q_id, u.u_firstname, u.u_lastname, u.u_avatar_mime_type, s.score, s_datetime FROM enrollments e LEFT JOIN
