@@ -36,7 +36,7 @@ try {
 
                         if (count($posts[$i]['p_item_list']->quizzes) > 0) {
                             $db->where('q_id', $posts[$i]['p_item_list']->quizzes, 'IN');
-                            $cols = array("q_id", "q_name", "q_due_date", "q_time_limit");
+                            $cols = array("q_id", "q_name", "q_due_date");
                             $posts[$i]['p_item_list']->quizzes = $db->get('quizzes', null, $cols);
                         }
                     }
