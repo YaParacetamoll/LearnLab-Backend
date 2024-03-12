@@ -5,11 +5,19 @@ try {
     switch ($_SERVER['REQUEST_METHOD']) {
         case 'GET':
             if (isset($_SESSION['u_id']) && isset($_GET['c_id']) && isset($_GET['q_id'])) {
+
+                $db->where("q_id", $_GET['q_id']);
+                $db->where("u_id", $_SESSION["u_id"]);
+                $db->where("c_id", $_GET['c_id']);
+                if ($db->getOne('submissions_quiz', 'q_id')) {
+                    echo jsonResponse(400, "คุณทำแบบทดสอบนี้ไปแล้ว");
+                    die();
+                }
+
                 $db->where("c_id", $_GET['c_id']);
                 $db->where("q_id", $_GET['q_id']);
                 $result = $db->getOne('quizzes');
                 $result['q_items'] = json_decode($result['q_items']);
-
                 $db->where("u_id", $_SESSION["u_id"]);
                 $db->where("c_id", $_GET["c_id"]);
                 $role = $db->getValue("enrollments", "u_role");
@@ -42,7 +50,7 @@ try {
                         $quizs
                     );
             } else {
-                echo jsonResponse(400, "คุณไม่มีสิทธิ์ในการสร้างแบบทดสอบ");
+                echo jsonResponse(400, "คุณไม่มีสิทธิ์ในการทำแบบทดสอบ");
                 die();
             }
             break;
