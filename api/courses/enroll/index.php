@@ -13,6 +13,7 @@ try {
                 die();
             }
             $db->join("users u", "u.u_id=e.u_id", "LEFT");
+            if (isset($_GET['u_role'])) $db->where('e.u_role', $_GET['u_role']);
             $db->where("c_id", $_GET["c_id"]);
             $db->orderBy("e.u_role", "desc");
             $db->orderBy("u.u_firstname", "asc");
