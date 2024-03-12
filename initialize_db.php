@@ -7,6 +7,7 @@ $db = new MysqliDb(array(
     'username' => $_SERVER['DB_USERNAME'],
     'password' => $_SERVER['DB_PASSWORD'],
     'db' => $_SERVER['DB_DATABASE'],
-    'port' => $_SERVER['DB_PORT']
+    'port' => $_SERVER['DB_PORT'],
+    'charset' => 'utf8mb4'
 ));
 ?>
