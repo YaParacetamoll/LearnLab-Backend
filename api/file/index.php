@@ -41,14 +41,13 @@ try {
                     exit();
                 } else if ($file && is_null($file['f_data'])) {
                     try {
-                        // header('Content-Disposition: filename="' . $file["f_name"] . '"', true, 200);
-                        //header('Content-type: ' . $file['f_mime_type'], true, 200);
+                        header('Content-Disposition: filename="' . $file["f_name"] . '"', true, 200);
+                        header('Content-type: ' . $file['f_mime_type'], true, 200);
                         // TODO : Use Cloud Front Later
                         $s3Obj = $s3client->getObject([
                             'Bucket' => $s3bucket, // ชื่อBucket
                             'Key' =>  key_exists("f_path", $file) ? intval($file['c_id']) . $file["f_path"] . $file["f_ident_key"] . $file["f_name"] : intval($file['c_id']) . '/' . $file["f_ident_key"] . $file["f_name"], // ชื่อไฟล์ ,
                         ]);
-                        echo key_exists("f_path", $file) ? intval($file['c_id']) . $file["f_path"] . $file["f_ident_key"] . $file["f_name"] : intval($file['c_id']) . '/' . $file["f_ident_key"] . $file["f_name"];
                         $res = $s3Obj->get('Body');
                         $res->rewind();
                         echo $res;
