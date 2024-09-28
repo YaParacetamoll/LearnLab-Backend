@@ -1,12 +1,11 @@
 <?php
-require_once 'vendor/autoload.php';
+require_once "vendor/autoload.php";
 
 use Aws\Credentials\CredentialProvider;
 use Aws\S3\S3Client;
 
-$profile = 'default';
-$path = __DIR__ ."/aws_credentials.ini";
-
+$profile = "default";
+$path = __DIR__ . "/aws_credentials.ini";
 
 // If Use .ini File
 $provider = CredentialProvider::ini($profile, $path);
@@ -18,25 +17,22 @@ $provider = CredentialProvider::ini($profile, $path);
 
 $provider = CredentialProvider::memoize($provider);
 
-
 // Next Step Create S3 Client
 
 $s3client = new S3Client([
-    'region'      => 'us-east-1',
-    'version'     => 'latest',
-    'credentials' => $provider
+    "region" => "us-east-1",
+    "version" => "latest",
+    "credentials" => $provider,
 ]);
-
 
 $s3bucket = "oardisodb";
 
-
-header("Content-Type: image/jpeg",true);
+header("Content-Type: image/jpeg", true);
 
 $file = $s3client->getObject([
-    'Bucket' => $s3bucket , // ชื่อBucket
-    'Key' => "cisco.jpg" , // ชื่อไฟล์ ,
+    "Bucket" => $s3bucket, // ชื่อBucket
+    "Key" => "cisco.jpg", // ชื่อไฟล์ ,
 ]);
-$body = $file->get('Body');
+$body = $file->get("Body");
 //$body->rewind();
 echo $body;
