@@ -33,7 +33,7 @@ try {
                 echo json_encode($listing);
             } else if (key_exists("f_id", $_GET)) {
                 $db->where('f_id', intval($_GET["f_id"]));
-                $file = $db->getOne('files', 'f_data, f_name, f_mime_type, f_path, c_id');
+                $file = $db->getOne('files', 'f_data, f_name, f_mime_type, f_path, c_id, f_ident_key');
                 if ($file && !is_null($file['f_data'])) {
                     header('Content-Disposition: filename="' . $file["f_name"] . '"');
                     header('Content-type: ' . $file['f_mime_type'], true);
@@ -46,7 +46,7 @@ try {
                         // TODO : Use Cloud Front Later
                         $s3Obj = $s3client->getObject([
                             'Bucket' => $s3bucket, // ชื่อBucket
-                            'Key' =>  key_exists("f_path", $file) ? $file["c_id"] . $file["f_path"] . $file["f_name"] : $file["c_id"] . $file["f_name"], // ชื่อไฟล์ ,
+                            'Key' =>  key_exists("f_path", $file) ? $file["c_id"] . $file["f_path"] . $file["f_ident_key"] . $file["f_name"] : $file["c_id"] . '/' . $file["f_ident_key"] . $file["f_name"], // ชื่อไฟล์ ,
                         ]);
                         $res = $s3Obj->get('Body');
                         $res->rewind();
@@ -80,11 +80,12 @@ try {
                 } else if (is_uploaded_file($_FILES["f_data"]["tmp_name"])) {
                     $mime_type = mime_content_type($_FILES['f_data']['tmp_name']);
                     $blob = file_get_contents($_FILES['f_data']['tmp_name']);
+                    $ident_key = uniqid(date("Y-m-d-H-i-s-"));
                     try {
                         $s3client->putObject(
                             [
                                 'Bucket' => $s3bucket,
-                                'Key' =>  key_exists("f_path", $_POST) ? $_POST['c_id'] . $_POST['f_path'] . $_FILES['f_data']['name'] : $_POST['c_id'] . $_FILES['f_data']['name'],
+                                'Key' =>  key_exists("f_path", $_POST) ? $_POST['c_id'] . $_POST['f_path'] . $ident_key . $_FILES['f_data']['name'] : $_POST['c_id'] . $ident_key . $_FILES['f_data']['name'],
                                 'Body' => $blob,
                             ]
                         );
@@ -98,7 +99,8 @@ try {
                         "f_path" => $_POST['f_path'],
                         "f_data" => null,
                         "f_mime_type" => $mime_type,
-                        "f_type" => 'FILE'
+                        "f_type" => 'FILE',
+                        "f_ident_key" => $ident_key
                     );
                     $res = $db->insert('files', $data);
                 }
@@ -132,9 +134,9 @@ try {
                     echo jsonResponse(403, "Unauthorized on this course");
                     die();
                 }
-
+                
                 $db->where('f_id', $JSON_DATA['f_id']);
-                $folder_path = $db->getOne('files', 'f_name ,f_path,f_data');
+                $folder_path = $db->getOne('files', 'f_name ,f_path,f_data,f_ident_key');
                 if ($JSON_DATA['f_type'] === 'FILE') $db->where('f_id', $JSON_DATA['f_id']); // Delete Single File
                 else if ($JSON_DATA['f_type'] === 'FOLDER') { // Delete Folder and All Files inside it
 
@@ -149,7 +151,7 @@ try {
                             $s3client->deleteObject(
                                 [
                                     'Bucket' => $s3bucket,
-                                    'Key' => $JSON_DATA['c_id'] . $folder_path['f_path'] . $folder_path['f_name'],
+                                    'Key' => $JSON_DATA['c_id'] . $folder_path['f_path'] . $folder_path['f_ident_key'] . $folder_path['f_name'],
                                 ]
                             );
                         } catch (Exception $e) {
