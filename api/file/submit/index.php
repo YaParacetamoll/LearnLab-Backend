@@ -28,11 +28,28 @@ try {
                 echo json_encode($listing);
             } else if (key_exists("f_id", $_GET)) {
                 $db->where('f_id', intval($_GET["f_id"]));
-                $file = $db->getOne('files', 'f_data, f_name, f_mime_type');
+                $file = $db->getOne('files', 'f_data, f_name, f_mime_type,f_path , f_ident_key');
                 if ($file && !is_null($file['f_data'])) {
                     header('Content-Disposition: filename="' . $file["f_name"] . '"');
                     header('Content-type: ' . $file['f_mime_type']);
                     echo $file['f_data'];
+                } else if ($file && is_null($file['f_data'])) {
+                    try {
+                        header('Content-Disposition: filename="' . $file["f_name"] . '"', true, 200);
+                        header('Content-type: ' . $file['f_mime_type'], true, 200);
+                        // TODO : Use Cloud Front Later
+                        $s3Obj = $s3client->getObject([
+                            'Bucket' => $s3bucket_submit,
+                            'Key' =>  key_exists("f_path", $file) ? intval($_GET["f_id"]) . $file["f_path"] . $file["f_ident_key"] . $file["f_name"] : intval($_GET["f_id"]) . '/' . $file["f_ident_key"] . $file["f_name"], // ชื่อไฟล์ ,
+                        ]);
+                        $res = $s3Obj->get('Body');
+                        $res->rewind();
+                        echo $res;
+                        exit();
+                    } catch (Exception $e) {
+                        header('Content-Type: application/json; charset=utf-8', true);
+                        echo jsonResponse(404, "No file here");
+                    }
                 } else {
                     echo jsonResponse(404, "No file here");
                 }
@@ -75,6 +92,18 @@ try {
                         $temp = $_FILES["f_data"]['tmp_name'][$j];
                         $mime_type = mime_content_type($temp);
                         $blob = file_get_contents($temp);
+                        $ident_key = uniqid(date("Y-m-d-H-i-s-"));
+                        try {
+                            $s3client->putObject(
+                                [
+                                    'Bucket' => $s3bucket_submit,
+                                    'Key' =>  intval($_POST['c_id']) . $db_fs_path . $ident_key . $name,
+                                    'Body' => $blob,
+                                ]
+                            );
+                        } catch (Exception $e) {
+                            array_push($insertError, $e);
+                        }
                         $data = array(
                             "u_id" => $_SESSION['u_id'],
                             "c_id" => intval($_POST['c_id']),
@@ -83,7 +112,8 @@ try {
                             "f_data" => $blob,
                             "f_privacy" => "PRIVATE",
                             "f_mime_type" => $mime_type,
-                            "f_type" => 'FILE'
+                            "f_type" => 'FILE',
+                            "f_ident_key" => $ident_key
                         );
                         $f_id = $db->insert('files', $data);
                         if ($f_id) {

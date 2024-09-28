@@ -33,7 +33,7 @@ try {
                 echo json_encode($listing);
             } else if (key_exists("f_id", $_GET)) {
                 $db->where('f_id', intval($_GET["f_id"]));
-                $file = $db->getOne('files', 'f_data, f_name, f_mime_type, f_path, c_id, f_ident_key');
+                $file = $db->getOne('files', 'f_data, f_name, f_mime_type, f_path, f_ident_key, c_id');
                 if ($file && !is_null($file['f_data'])) {
                     header('Content-Disposition: filename="' . $file["f_name"] . '"');
                     header('Content-type: ' . $file['f_mime_type'], true);
@@ -41,20 +41,21 @@ try {
                     exit();
                 } else if ($file && is_null($file['f_data'])) {
                     try {
-                        header('Content-Disposition: filename="' . $file["f_name"] . '"', true, 200);
-                        header('Content-type: ' . $file['f_mime_type'], true, 200);
+                        // header('Content-Disposition: filename="' . $file["f_name"] . '"', true, 200);
+                        //header('Content-type: ' . $file['f_mime_type'], true, 200);
                         // TODO : Use Cloud Front Later
                         $s3Obj = $s3client->getObject([
                             'Bucket' => $s3bucket, // ชื่อBucket
-                            'Key' =>  key_exists("f_path", $file) ? $file["c_id"] . $file["f_path"] . $file["f_ident_key"] . $file["f_name"] : $file["c_id"] . '/' . $file["f_ident_key"] . $file["f_name"], // ชื่อไฟล์ ,
+                            'Key' =>  key_exists("f_path", $file) ? intval($file['c_id']) . $file["f_path"] . $file["f_ident_key"] . $file["f_name"] : intval($file['c_id']) . '/' . $file["f_ident_key"] . $file["f_name"], // ชื่อไฟล์ ,
                         ]);
+                        echo key_exists("f_path", $file) ? intval($file['c_id']) . $file["f_path"] . $file["f_ident_key"] . $file["f_name"] : intval($file['c_id']) . '/' . $file["f_ident_key"] . $file["f_name"];
                         $res = $s3Obj->get('Body');
                         $res->rewind();
                         echo $res;
                         exit();
                     } catch (Exception $e) {
                         header('Content-Type: application/json; charset=utf-8', true);
-                        echo jsonResponse(404, "No file here");
+                        echo jsonResponse(404, "No file here -1");
                     }
                 } else {
                     echo jsonResponse(404, "No file here");
@@ -85,11 +86,12 @@ try {
                         $s3client->putObject(
                             [
                                 'Bucket' => $s3bucket,
-                                'Key' =>  key_exists("f_path", $_POST) ? $_POST['c_id'] . $_POST['f_path'] . $ident_key . $_FILES['f_data']['name'] : $_POST['c_id'] . $ident_key . $_FILES['f_data']['name'],
+                                'Key' =>  key_exists("f_path", $_POST) ? intval($_POST['c_id']) . $_POST['f_path'] . $ident_key . $_FILES['f_data']['name'] : intval($_POST['c_id']) . $ident_key . $_FILES['f_data']['name'],
                                 'Body' => $blob,
                             ]
                         );
                     } catch (Exception $e) {
+                        echo jsonResponse(500, "อัปโหลดล้มเหลว");
                         die($e);
                     }
                     $data = array(
@@ -134,7 +136,7 @@ try {
                     echo jsonResponse(403, "Unauthorized on this course");
                     die();
                 }
-                
+
                 $db->where('f_id', $JSON_DATA['f_id']);
                 $folder_path = $db->getOne('files', 'f_name ,f_path,f_data,f_ident_key');
                 if ($JSON_DATA['f_type'] === 'FILE') $db->where('f_id', $JSON_DATA['f_id']); // Delete Single File
