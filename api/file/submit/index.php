@@ -109,7 +109,7 @@ try {
                             "c_id" => intval($_POST['c_id']),
                             "f_name" => $name,
                             "f_path" => $db_fs_path,
-                            "f_data" => $blob,
+                            "f_data" => null,
                             "f_privacy" => "PRIVATE",
                             "f_mime_type" => $mime_type,
                             "f_type" => 'FILE',
