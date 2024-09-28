@@ -1,5 +1,6 @@
 <?php
 require_once 'vendor/autoload.php';
+
 use Aws\Credentials\CredentialProvider;
 use Aws\S3\S3Client;
 
@@ -26,4 +27,16 @@ $s3client = new S3Client([
     'credentials' => $provider
 ]);
 
+
 $s3bucket = "oardisodb";
+
+
+header("Content-Type: image/jpeg",true);
+
+$file = $s3client->getObject([
+    'Bucket' => $s3bucket , // ชื่อBucket
+    'Key' => "cisco.jpg" , // ชื่อไฟล์ ,
+]);
+$body = $file->get('Body');
+//$body->rewind();
+echo $body;
