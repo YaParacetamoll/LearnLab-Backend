@@ -16,8 +16,13 @@ try {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
+
+
             $db->where("a_id", $_GET["a_id"]);
-            $assignment_data = $db->getOne("assignments", "a_due_date, a_name");
+            $assignment_data = $db->getOne("assignments", "a_due_date, a_name, c_id");
+            if (!isset($assignment_data) || $assignment_data["c_id"] != $_GET["c_id"]) {
+                throw new Exception("ไม่พบการบ้านที่ค้นหา", 400);
+            }
 
             if (key_exists("u_id", $_GET)) {
                 $db->where("sa.a_id", $_GET["a_id"]);
@@ -137,5 +142,10 @@ try {
             echo jsonResponse(405, "ไม่อนุญาตให้ใช้ Method นี้");
     }
 } catch (Exception $e) {
-    echo jsonResponse(500, $e->getMessage());
+    if ($e->getCode()) {
+        echo jsonResponse($e->getCode(), $e->getMessage());
+    } else {
+        echo jsonResponse(500, $e->getMessage());
+    }
+
 }

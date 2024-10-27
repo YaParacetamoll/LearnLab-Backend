@@ -9,8 +9,7 @@ try {
     switch ($_SERVER["REQUEST_METHOD"]) {
         case "GET":
             if (!isset($_GET["c_id"])) {
-                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
-                die();
+                throw new Exception("ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง", 400);
             }
             if (isset($_GET["a_id"])) {
                 $db->where("a.c_id", intval($_GET["c_id"]));
@@ -65,8 +64,7 @@ try {
         case "PUT": //create assignment
             $_PUT = json_decode(file_get_contents("php://input"), true);
             if (!key_exists("c_id", $_PUT) || !key_exists("a_name", $_PUT)) {
-                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
-                die();
+                throw new Exception("ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง", 400);
             }
 
             $data = [];
@@ -82,12 +80,10 @@ try {
             $JSON = json_decode(file_get_contents("php://input"), true);
 
             if (!isset($_SESSION["u_id"])) {
-                echo jsonResponse(403, "Unauthenticated");
-                die();
+                throw new Exception("Unauthenticated", 403);
             }
             if (!isset($JSON) && !key_exists("a_id", $JSON)) {
-                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
-                die();
+                throw new Exception("ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง", 400);
             }
 
             $data = [];
@@ -108,7 +104,7 @@ try {
                 if (count($p_files) > 0) {
                     $db->where("f_id", $p_files, "IN");
                     if (!$db->delete("files")) {
-                        echo jsonResponse(400, "ไม่สามารถลบไฟล์ในโพสต์ได้");
+                        throw new Exception("ไม่สามารถลบไฟล์ในโพสต์ได้", 400);
                         break;
                     }
                 }
@@ -146,7 +142,7 @@ try {
                     ? jsonResponse(message: "ลบงานที่มอบหมายเรียบร้อบ")
                     : jsonResponse(400, "ไม่สามารถลบงานที่มอบหมายได้");
             } else {
-                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
+                throw new Exception("ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง", 400);
             }
             break;
     }
