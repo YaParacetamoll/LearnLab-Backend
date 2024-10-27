@@ -5,14 +5,19 @@ try {
     switch ($_SERVER["REQUEST_METHOD"]) {
         case "GET":
             if (
-                isset($_SESSION["u_id"]) &&
+                isset($JWT_SESSION_DATA["u_id"]) &&
                 isset($_GET["c_id"]) &&
                 isset($_GET["q_id"])
             ) {
+
+                
+
                 $db->where("q_id", $_GET["q_id"]);
-                $db->where("u_id", $_SESSION["u_id"]);
-                $db->where("c_id", $_GET["c_id"]);
-                if ($db->getOne("submissions_quiz", "q_id")) {
+                $db->where("sq.u_id", $JWT_SESSION_DATA["u_id"]);
+                $db->where("sq.c_id", $_GET["c_id"]);
+                $db->join("enrollments e", "e.c_id=sq.c_id", "LEFT");
+                
+                if ($db->getOne("submissions_quiz sq", "q_id") && $db->getOne("enrollments", "u_role") == "STUDENT") {
                     echo jsonResponse(400, "คุณทำแบบทดสอบนี้ไปแล้ว");
                     die();
                 }
@@ -21,7 +26,7 @@ try {
                 $db->where("q_id", $_GET["q_id"]);
                 $result = $db->getOne("quizzes");
                 $result["q_items"] = json_decode($result["q_items"]);
-                $db->where("u_id", $_SESSION["u_id"]);
+                $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
                 $db->where("c_id", $_GET["c_id"]);
                 $role = $db->getValue("enrollments", "u_role");
                 if ($role == "STUDENT") {
@@ -30,15 +35,15 @@ try {
                     }
                 }
                 echo json_encode($result);
-            } elseif (isset($_SESSION["u_id"]) && isset($_GET["c_id"])) {
-                $db->where("u_id", $_SESSION["u_id"]);
+            } elseif (isset($JWT_SESSION_DATA["u_id"]) && isset($_GET["c_id"])) {
+                $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
                 $db->where("c_id", $_GET["c_id"]);
                 $role = $db->getValue("enrollments", "u_role");
                 $quizs = [];
                 if ($role == "STUDENT") {
                     $db->join(
                         "submissions_quiz s",
-                        "s.q_id=q.q_id AND s.u_id=" . $_SESSION["u_id"],
+                        "s.q_id=q.q_id AND s.u_id=" . $JWT_SESSION_DATA["u_id"],
                         "LEFT"
                     );
                     $db->where("q.c_id", intval($_GET["c_id"]));
@@ -70,14 +75,14 @@ try {
         case "PUT": //สร้าง quiz
             $_PUT = json_decode(file_get_contents("php://input"), true);
             if (
-                isset($_SESSION["u_id"]) &&
+                isset($JWT_SESSION_DATA["u_id"]) &&
                 isset($_PUT) &&
                 key_exists("c_id", $_PUT) &&
                 key_exists("q_name", $_PUT) &&
                 key_exists("q_items", $_PUT)
             ) {
                 $db->where("c_id", $_PUT["c_id"]);
-                $db->where("u_id", intval($_SESSION["u_id"]));
+                $db->where("u_id", intval($JWT_SESSION_DATA["u_id"]));
                 $role = $db->getValue("enrollments", "u_role");
                 if (strcmp($role, "INSTRUCTOR")) {
                     echo jsonResponse(400, "คุณไม่มีสิทธิ์ในการสร้างแบบทดสอบ");
@@ -106,13 +111,13 @@ try {
             break;
         case "POST": // แก้ไข quiz
             $JSON_DATA = json_decode(file_get_contents("php://input"), true);
-            if (!isset($_SESSION["u_id"])) {
+            if (!isset($JWT_SESSION_DATA["u_id"])) {
                 echo jsonResponse(403, "Unauthenticated");
                 die();
             }
             if (isset($JSON_DATA) && key_exists("q_id", $JSON_DATA)) {
                 $db->where("c_id", $JSON_DATA["c_id"]);
-                $db->where("u_id", intval($_SESSION["u_id"]));
+                $db->where("u_id", intval($JWT_SESSION_DATA["u_id"]));
                 $role = $db->getValue("enrollments", "u_role");
                 if (strcmp($role, "INSTRUCTOR")) {
                     echo jsonResponse(400, "คุณไม่มีสิทธิ์ในการแก้ไขแบบทดสอบ");
@@ -135,7 +140,7 @@ try {
             }
             break;
         case "DELETE": // ลบ quiz
-            if (!isset($_SESSION["u_id"])) {
+            if (!isset($JWT_SESSION_DATA["u_id"])) {
                 echo jsonResponse(403, "Unauthenticated");
                 die();
             }
@@ -146,7 +151,7 @@ try {
                 key_exists("c_id", $_DELETE)
             ) {
                 $db->where("c_id", $_DELETE["c_id"]);
-                $db->where("u_id", intval($_SESSION["u_id"]));
+                $db->where("u_id", intval($JWT_SESSION_DATA["u_id"]));
                 $role = $db->getValue("enrollments", "u_role");
                 if (strcmp($role, "INSTRUCTOR")) {
                     echo jsonResponse(400, "คุณไม่มีสิทธิ์ในการลบแบบทดสอบ");

@@ -2,7 +2,7 @@
 require_once "../../../../initialize.php";
 
 try {
-    if (!isset($_SESSION["u_id"])) {
+    if (!isset($JWT_SESSION_DATA["u_id"])) {
         echo jsonResponse(403, "Unauthenticated");
         die();
     }

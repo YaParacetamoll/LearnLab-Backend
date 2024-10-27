@@ -5,11 +5,11 @@ try {
     switch ($_SERVER["REQUEST_METHOD"]) {
         case "GET":
             if (
-                isset($_SESSION["u_id"]) &&
+                isset($JWT_SESSION_DATA["u_id"]) &&
                 isset($_GET) &&
                 key_exists("c_id", $_GET)
             ) {
-                $db->where("u_id", intval($_SESSION["u_id"]));
+                $db->where("u_id", intval($JWT_SESSION_DATA["u_id"]));
                 $db->where("c_id", $_GET["c_id"]);
                 $result = $db->getOne("enrollments");
                 if ($result) {
@@ -95,14 +95,14 @@ try {
         case "PUT":
             $_PUT = json_decode(file_get_contents("php://input"), true);
             if (
-                isset($_SESSION["u_id"]) &&
+                isset($JWT_SESSION_DATA["u_id"]) &&
                 isset($_PUT) &&
                 key_exists("c_id", $_PUT) &&
                 key_exists("p_title", $_PUT) &&
                 key_exists("p_type", $_PUT)
             ) {
                 $db->where("c_id", $_PUT["c_id"]);
-                $db->where("u_id", intval($_SESSION["u_id"]));
+                $db->where("u_id", intval($JWT_SESSION_DATA["u_id"]));
                 $result = $db->getOne("enrollments");
                 if (
                     $result &&
@@ -120,7 +120,7 @@ try {
                         : null;
                     $data = [
                         "c_id" => $_PUT["c_id"],
-                        "u_id" => intval($_SESSION["u_id"]),
+                        "u_id" => intval($JWT_SESSION_DATA["u_id"]),
                         "ct_id" => $ct_id,
                         "p_title" => $_PUT["p_title"],
                         "p_type" => $_PUT["p_type"],
@@ -141,14 +141,14 @@ try {
         case "POST":
             $JSON_DATA = json_decode(file_get_contents("php://input"), true);
             if (
-                isset($_SESSION["u_id"]) &&
+                isset($JWT_SESSION_DATA["u_id"]) &&
                 isset($JSON_DATA) &&
                 key_exists("p_id", $JSON_DATA)
             ) {
                 //ถ้าเราจะมีการแก้ไข Post ก็น่าจะประมาณนี้นะ, ไม่รู้ว่า Post item จะมีการแก้ไขยังไงได้บ้างเลย commit แบบนี้ไปก่อนละกัน
                 $db->where("p_id", $JSON_DATA["p_id"]);
                 $post_u_id = $db->getValue("posts", "u_id");
-                if (intval($_SESSION["u_id"]) == $post_u_id) {
+                if (intval($JWT_SESSION_DATA["u_id"]) == $post_u_id) {
                     $data = [];
                     foreach (array_keys($JSON_DATA) as $key) {
                         $data[$key] =
@@ -171,7 +171,7 @@ try {
             $_DELETE = json_decode(file_get_contents("php://input"), true);
             // รับทั้ง u_id(id ของ user ที่เข้าใช้งานอยู่), c_id(่ของ course ที่ต้องการลบ post) และ p_id(post ที่ต้องการลบ) มา
             if (
-                isset($_SESSION["u_id"]) &&
+                isset($JWT_SESSION_DATA["u_id"]) &&
                 isset($_DELETE) &&
                 key_exists("p_id", $_DELETE) &&
                 key_exists("c_id", $_DELETE)
@@ -184,11 +184,11 @@ try {
                     null,
                     "e.u_id, e.u_role"
                 );
-                $db->where("u_id", intval($_SESSION["u_id"]));
+                $db->where("u_id", intval($JWT_SESSION_DATA["u_id"]));
                 $db->where("c_id", $_DELETE["c_id"]);
                 $user_role = $db->getValue("enrollments", "u_role");
                 if (
-                    $_SESSION["u_id"] == $post_info["u_id"] ||
+                    $JWT_SESSION_DATA["u_id"] == $post_info["u_id"] ||
                     ($user_role == "INSTRUCTOR" && $post_info["u_role"] == "TA")
                 ) {
                     $db->where("p_id", $_DELETE["p_id"]);

@@ -4,7 +4,7 @@ require_once "../../../initialize.php";
 try {
     switch ($_SERVER["REQUEST_METHOD"]) {
         case "POST": //multipart form
-            if (!isset($_SESSION["u_id"])) {
+            if (!isset($JWT_SESSION_DATA["u_id"])) {
                 echo jsonResponse(403, "Unauthenticated");
                 die();
             }
@@ -17,7 +17,7 @@ try {
                 die();
             }
             $db->where("c_id", $_POST["c_id"]);
-            $db->where("u_id", intval($_SESSION["u_id"]));
+            $db->where("u_id", intval($JWT_SESSION_DATA["u_id"]));
             $role = $db->getValue("enrollments", "u_role");
             if (strcmp($role, "INSTRUCTOR")) {
                 echo jsonResponse(400, "คุณไม่มีสิทธิ์ที่จะแก้ไขคอร์สเรียน");

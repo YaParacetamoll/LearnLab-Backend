@@ -2,7 +2,7 @@
 require_once "../../../initialize.php";
 
 try {
-    if (!isset($_SESSION["u_id"])) {
+    if (!isset($JWT_SESSION_DATA["u_id"])) {
         echo jsonResponse(403, "Unauthenticated");
         die();
     }
@@ -33,7 +33,7 @@ try {
             }
             echo $enrollment
                 ? json_encode($enrollment)
-                : jsonResponse(400, "ไม่มีสมาชิกในคอร์สนี้");
+                : jsonResponse(400, "ไม่เป็นสมาชิกในคอร์สนี้");
             break;
         case "PUT":
             $_PUT = json_decode(file_get_contents("php://input"), true);
@@ -48,7 +48,7 @@ try {
             );
             if ($course) {
                 $db->where("c_id", $course["c_id"]);
-                $db->where("u_id", $_SESSION["u_id"]);
+                $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
                 $check = $db->getOne("enrollments", "c_id");
                 if ($check) {
                     echo jsonResponse(400, "คุณได้ลงทะเบียนคอร์สนี้แล้ว");
@@ -62,7 +62,7 @@ try {
         case "POST":
             $JSON_DATA = json_decode(file_get_contents("php://input"), true);
             if (
-                isset($_SESSION["u_id"]) &&
+                isset($JWT_SESSION_DATA["u_id"]) &&
                 isset($JSON_DATA) &&
                 key_exists("c_id", $JSON_DATA)
             ) {
@@ -83,10 +83,10 @@ try {
                 ) {
                     echo jsonResponse(400, "รหัสคอร์สผิด กรุณาลองใหม่"); //Course ตั้งรหัสแต่ User ใส่ผิด
                 } else {
-                    $db->where("u_id", $_SESSION["u_id"]);
+                    $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
                     $role = $db->getValue("users", "u_role");
                     $data = [
-                        "u_id" => $_SESSION["u_id"],
+                        "u_id" => $JWT_SESSION_DATA["u_id"],
                         "c_id" => $JSON_DATA["c_id"],
                         "u_role" => $role,
                     ];
@@ -131,11 +131,11 @@ try {
                     ? jsonResponse(message: "ลบผู้ใช้ออกจากคอร์สสำเร็จ")
                     : jsonResponse(400, "Fail to unenroll");
             } elseif (
-                isset($_SESSION["u_id"]) &&
+                isset($JWT_SESSION_DATA["u_id"]) &&
                 isset($_DELETE) &&
                 key_exists("c_id", $_DELETE)
             ) {
-                $db->where("u_id", $_SESSION["u_id"]);
+                $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
                 $db->where("c_id", $_DELETE["c_id"]);
                 echo $db->delete("enrollments")
                     ? jsonResponse(

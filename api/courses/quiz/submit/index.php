@@ -2,7 +2,7 @@
 require_once "../../../../initialize.php";
 
 try {
-    if (!isset($_SESSION["u_id"])) {
+    if (!isset($JWT_SESSION_DATA["u_id"])) {
         echo jsonResponse(403, "Unauthenticated");
         die();
     }
@@ -84,7 +84,7 @@ try {
             }
             $data = [
                 "q_id" => $_PUT["q_id"],
-                "u_id" => $_SESSION["u_id"],
+                "u_id" => $JWT_SESSION_DATA["u_id"],
                 "c_id" => $_PUT["c_id"],
                 "s_content" => json_encode($_PUT["s_content"]),
                 "score" => $score,

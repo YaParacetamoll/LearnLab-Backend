@@ -2,7 +2,7 @@
 require_once "../../../initialize.php";
 
 try {
-    if (!isset($_SESSION["u_id"])) {
+    if (!isset($JWT_SESSION_DATA["u_id"])) {
         echo jsonResponse(403, "Unauthenticated");
         die();
     }
@@ -16,7 +16,7 @@ try {
                 $db->where("a.a_id", $_GET["a_id"]);
                 $db->join(
                     "submissions_assignment s",
-                    "s.a_id=a.a_id AND s.u_id=" . $_SESSION["u_id"],
+                    "s.a_id=a.a_id AND s.u_id=" . $JWT_SESSION_DATA["u_id"],
                     "LEFT"
                 );
                 $assignment = $db->getOne("assignments a");
@@ -49,7 +49,7 @@ try {
             } else {
                 $db->join(
                     "submissions_assignment s",
-                    "s.a_id=a.a_id AND s.u_id=" . $_SESSION["u_id"],
+                    "s.a_id=a.a_id AND s.u_id=" . $JWT_SESSION_DATA["u_id"],
                     "LEFT"
                 );
                 $db->where("a.c_id", intval($_GET["c_id"]));
@@ -79,7 +79,7 @@ try {
         case "PATCH": //edit assignment
             $JSON = json_decode(file_get_contents("php://input"), true);
 
-            if (!isset($_SESSION["u_id"])) {
+            if (!isset($JWT_SESSION_DATA["u_id"])) {
                 throw new Exception("Unauthenticated", 403);
             }
             if (!isset($JSON) && !key_exists("a_id", $JSON)) {

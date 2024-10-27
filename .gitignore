@@ -3,3 +3,4 @@ composer.phar
 .env
 .vscode
 playground.php
+aws_credentials.ini

@@ -11,3 +11,5 @@ function jsonResponse($response_code = 200, $message = "")
         "message" => $message,
     ]);
 }
+
+require_once "initialize_jwt.php";

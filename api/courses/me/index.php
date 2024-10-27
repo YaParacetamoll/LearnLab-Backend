@@ -3,7 +3,7 @@ require_once "../../../vendor/autoload.php";
 require_once "../../../initialize.php";
 
 try {
-    if (!isset($_SESSION["u_id"])) {
+    if (!isset($JWT_SESSION_DATA["u_id"])) {
         echo jsonResponse(403, "Unauthenticated");
         die();
     }
@@ -13,7 +13,7 @@ try {
             if (isset($_GET["mycourse"])) {
                 $en_crs = [];
                 $cols = ["c_id"];
-                $db->where("u_id", $_SESSION["u_id"]);
+                $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
                 $enrolled_course = $db->get("enrollments", null, $cols);
                 if ($db->count > 0) {
                     foreach ($enrolled_course as $ec) {
@@ -24,7 +24,7 @@ try {
             } elseif (isset($_GET["my_course_role"])) {
                 $en_crs = [];
                 $cols = ["c_id", "u_role"];
-                $db->where("u_id", $_SESSION["u_id"]);
+                $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
                 $enrolled_course = $db->get("enrollments", null, $cols);
                 if ($db->count > 0) {
                     foreach ($enrolled_course as $ec) {
@@ -48,7 +48,7 @@ try {
                     ? intval($_GET["limit"])
                     : 10;
                 $db->join("courses c", "e.c_id=c.c_id", "LEFT");
-                $db->where("e.u_id", $_SESSION["u_id"]);
+                $db->where("e.u_id", $JWT_SESSION_DATA["u_id"]);
                 if (isset($_GET["search"]) && strlen($_GET["search"]) > 0) {
                     $db->where("c_name", "%" . $_GET["search"] . "%", "LIKE");
                 }

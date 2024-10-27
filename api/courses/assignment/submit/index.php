@@ -2,7 +2,7 @@
 require_once "../../../../initialize.php";
 
 try {
-    if (!isset($_SESSION["u_id"])) {
+    if (!isset($JWT_SESSION_DATA["u_id"])) {
         echo jsonResponse(403, "Unauthenticated");
         die();
     }
@@ -80,7 +80,7 @@ try {
                 die();
             }
             $data = [
-                "u_id" => $_SESSION["u_id"],
+                "u_id" => $JWT_SESSION_DATA["u_id"],
             ];
             foreach (array_keys($_PUT) as $key) {
                 $data[$key] =
@@ -102,7 +102,7 @@ try {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
-            $data = ["examiner_id" => intval($_SESSION["u_id"])];
+            $data = ["examiner_id" => intval($JWT_SESSION_DATA["u_id"])];
             foreach (["s_feedback", "score"] as $key) {
                 if (key_exists($key, $_PATCH)) {
                     $data[$key] = $_PATCH[$key];
@@ -121,7 +121,7 @@ try {
                 die();
             }
             $db->where("a_id", $_DELETE["a_id"]);
-            $db->where("u_id", $_SESSION["u_id"]);
+            $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
             $s_content = json_decode(
                 $db->getValue("submissions_assignment", "s_content")
             );
@@ -133,7 +133,7 @@ try {
                 }
             }
             $db->where("a_id", $_DELETE["a_id"]);
-            $db->where("u_id", $_SESSION["u_id"]);
+            $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
             echo $db->delete("submissions_assignment")
                 ? jsonResponse(message: "ยกเลิกการส่งเรียบร้อย")
                 : jsonResponse(400, "ไม่สามารถยกเลิกการส่งได้");

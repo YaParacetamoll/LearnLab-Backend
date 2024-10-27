@@ -4,9 +4,9 @@ require_once "../../initialize.php";
 try {
     switch ($_SERVER["REQUEST_METHOD"]) {
         case "GET":
-            if (isset($_SESSION["u_id"])) {
+            if (isset($JWT_SESSION_DATA["u_id"])) {
                 // if requested with 'image' query it will return image base64 encoded blob with mime type
-                $db->where("u_id", intval($_SESSION["u_id"]));
+                $db->where("u_id", intval($JWT_SESSION_DATA["u_id"]));
                 if (!isset($_GET["image"])) {
                     $user = $db->getOne(
                         "users",
@@ -84,13 +84,15 @@ try {
             ) {
                 $db->where("u_email", $_PUT["u_email"]);
                 $user = $db->getOne("users");
-                echo $db->count > 0 &&
-                password_verify($_PUT["u_password"], $user["u_hashed_password"])
-                    ? jsonResponse(message: "Authentication success")
-                    : jsonResponse(400, "Authentication failed");
-                if (!is_null($user)) {
-                    $_SESSION["u_id"] = intval($user["u_id"]);
-                    $_SESSION["u_role"] = $user["u_role"];
+                if ($db->count > 0 && password_verify($_PUT["u_password"], $user["u_hashed_password"]) && !is_null($user)) {
+                    echo json_encode([
+                        "status" => http_response_code(),
+                        "message" => "Authentication success",
+                        "access_token" => createJWT(["u_id" => $user["u_id"], "u_role" => $user["u_role"]]),
+                        "refresh_token" => createJWT(["u_id" => $user["u_id"]], true)
+                    ]);
+                } else {
+                    echo jsonResponse(400, "Authentication failed");
                 }
             } else {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");

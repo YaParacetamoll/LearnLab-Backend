@@ -3,7 +3,7 @@ require_once "../../../initialize.php";
 // TODO: https://stackoverflow.com/questions/8062496/how-to-change-max-allowed-packet-size
 
 try {
-    if (!isset($_SESSION["u_id"])) {
+    if (!isset($JWT_SESSION_DATA["u_id"])) {
         echo jsonResponse(403, "Unauthorized");
         die();
     }
@@ -11,7 +11,7 @@ try {
         case "GET":
             if (key_exists("f_id", $_GET)) {
                 $JSON_DATA = json_decode($_GET["f_id"]);
-                $db->where("u_id", $_SESSION["u_id"]);
+                $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
                 $db->where("c_id", intval($_GET["c_id"]));
                 $isAllow = $db->getOne("enrollments");
 
@@ -87,7 +87,7 @@ try {
             break;
         case "POST":
             if (key_exists("c_id", $_POST) && key_exists("f_data", $_FILES)) {
-                $db->where("u_id", $_SESSION["u_id"]);
+                $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
                 $db->where("c_id", $_POST["c_id"]);
                 $isAllow = $db->getOne("enrollments");
                 $upload_folder_hash = substr(
@@ -106,7 +106,7 @@ try {
                 }
                 $db_fs_path = "/posts/" . $upload_folder_hash . "/";
                 $data = [
-                    "u_id" => $_SESSION["u_id"],
+                    "u_id" => $JWT_SESSION_DATA["u_id"],
                     "c_id" => intval($_POST["c_id"]),
                     "f_name" => $upload_folder_hash,
                     "f_path" => "/posts/",
@@ -126,7 +126,7 @@ try {
                         $blob = file_get_contents($temp);
                         $ident_key = uniqid(date("Y-m-d-H-i-s-"));
                         $data = [
-                            "u_id" => $_SESSION["u_id"],
+                            "u_id" => $JWT_SESSION_DATA["u_id"],
                             "c_id" => intval($_POST["c_id"]),
                             "f_name" => $name,
                             "f_path" => $db_fs_path,

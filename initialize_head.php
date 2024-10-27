@@ -1,8 +1,34 @@
 <?php
 require_once "vendor/autoload.php";
 
+function extractOriginForCors(string $url): ?array
+{
+    $parsedUrl = parse_url($url);
+
+    if (!is_array($parsedUrl)) {
+        return null;
+    }
+
+    if (!isset($parsedUrl['scheme']) || !isset($parsedUrl['host']) || empty($parsedUrl['host'])) {
+        return null;
+    }
+
+    $scheme = $parsedUrl['scheme'];
+    $host = $parsedUrl['host'];
+    $port = $parsedUrl['port'] ?? null;
+
+    if ($port !== null) {
+        $host .= ':' . $port;
+    }
+
+    return ["origin" => $scheme . "://" . $host, "host" => $host]; 
+}
+
+$url = $_SERVER["HTTP_REFERER"];
+$origin = extractOriginForCors($url);
+
 if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
-    header("Access-Control-Allow-Origin: http://localhost:3000");
+    header("Access-Control-Allow-Origin: " . $origin["origin"]);
     header(
         "Access-Control-Allow-Methods: POST, GET, DELETE, PUT, PATCH, OPTIONS"
     );
@@ -14,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     die();
 }
 
-header("Access-Control-Allow-Origin: http://localhost:3000");
+header("Access-Control-Allow-Origin: " . $origin["origin"]);
 header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json; charset=utf-8");
 

@@ -55,7 +55,7 @@ try {
             $JSON_DATA = json_decode(file_get_contents("php://input"), true);
             $output = [];
             if (
-                !isset($_SESSION["u_id"]) &&
+                !isset($JWT_SESSION_DATA["u_id"]) &&
                 file_get_contents("php://input") == null
             ) {
                 echo jsonResponse(403, "Unauthenticated");
@@ -67,7 +67,7 @@ try {
             }
             $en_crs = []; // Course that user enrolled
             $cols = ["c_id"];
-            $db->where("u_id", $_SESSION["u_id"]);
+            $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
             $enrolled_course = $db->get("enrollments", null, $cols);
             if ($db->count > 0) {
                 foreach ($enrolled_course as $ec) {
@@ -93,13 +93,13 @@ try {
             break;
 
         case "POST":
-            if (isset($_SESSION["u_role"])) {
-                if ($_SESSION["u_role"] !== "INSTRUCTOR") {
+            if (isset($JWT_SESSION_DATA["u_role"])) {
+                if ($JWT_SESSION_DATA["u_role"] !== "INSTRUCTOR") {
                     echo jsonResponse(403, "You can't perform this action!");
                 }
             }
             if (
-                isset($_SESSION["u_id"]) &&
+                isset($JWT_SESSION_DATA["u_id"]) &&
                 key_exists("c_name", $_POST) &&
                 key_exists("c_description", $_POST) &&
                 key_exists("c_privacy", $_POST)
@@ -132,7 +132,7 @@ try {
                     $c_id = $db->getValue("courses", "c_id");
                     $enroll_data = [
                         "c_id" => $c_id,
-                        "u_id" => intval($_SESSION["u_id"]),
+                        "u_id" => intval($JWT_SESSION_DATA["u_id"]),
                         "u_role" => "INSTRUCTOR",
                     ];
                     $db->insert("enrollments", $enroll_data);
@@ -147,11 +147,11 @@ try {
         case "DELETE":
             $_DELETE = json_decode(file_get_contents("php://input"), true);
             if (
-                isset($_SESSION["u_id"]) &&
+                isset($JWT_SESSION_DATA["u_id"]) &&
                 isset($_DELETE) &&
                 key_exists("c_id", $_DELETE)
             ) {
-                $db->where("u_id", $_SESSION["u_id"]);
+                $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
                 $role = $db->getValue("enrollments", "u_role");
                 if ($role && $role == "INSTRUCTOR") {
                     $db->where("c_id", $_DELETE["c_id"]);

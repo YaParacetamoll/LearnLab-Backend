@@ -3,14 +3,14 @@ require_once "../../initialize.php";
 // TODO: https://stackoverflow.com/questions/8062496/how-to-change-max-allowed-packet-size
 
 try {
-    if (!isset($_SESSION["u_id"])) {
+    if (!isset($JWT_SESSION_DATA["u_id"])) {
         echo jsonResponse(403, "Unauthorized");
         die();
     }
     switch ($_SERVER["REQUEST_METHOD"]) {
         case "GET":
             if (key_exists("c_id", $_GET) && key_exists("f_path", $_GET)) {
-                $db->where("u_id", $_SESSION["u_id"]);
+                $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
                 $db->where("c_id", intval($_GET["c_id"]));
                 $isAllow = $db->getOne("enrollments");
 
@@ -108,7 +108,7 @@ try {
                 key_exists("f_type", $_POST) &&
                 key_exists("f_data", $_FILES)
             ) {
-                $db->where("u_id", $_SESSION["u_id"]);
+                $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
                 $db->where("c_id", $_POST["c_id"]);
                 $isAllow = $db->getOne("enrollments");
                 if (is_null($isAllow)) {
@@ -143,7 +143,7 @@ try {
                         die($e);
                     }
                     $data = [
-                        "u_id" => $_SESSION["u_id"],
+                        "u_id" => $JWT_SESSION_DATA["u_id"],
                         "c_id" => intval($_POST["c_id"]),
                         "f_name" => $_FILES["f_data"]["name"],
                         "f_path" => $_POST["f_path"],
@@ -167,7 +167,7 @@ try {
                 key_exists("f_name", $_POST)
             ) {
                 $data = [
-                    "u_id" => $_SESSION["u_id"],
+                    "u_id" => $JWT_SESSION_DATA["u_id"],
                     "c_id" => intval($_POST["c_id"]),
                     "f_name" => $_POST["f_name"],
                     "f_path" => $_POST["f_path"],
@@ -191,7 +191,7 @@ try {
                 key_exists("c_id", $JSON_DATA) &&
                 key_exists("f_type", $JSON_DATA)
             ) {
-                $db->where("u_id", $_SESSION["u_id"]);
+                $db->where("u_id", $JWT_SESSION_DATA["u_id"]);
                 $db->where("c_id", $JSON_DATA["c_id"]);
                 $isAllow = $db->getOne("enrollments");
 

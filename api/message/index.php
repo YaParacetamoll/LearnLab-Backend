@@ -4,7 +4,7 @@ require_once "../../initialize.php";
 try {
     switch ($_SERVER["REQUEST_METHOD"]) {
         case "GET":
-            // if (!isset($_SESSION['u_id'])) {
+            // if (!isset($JWT_SESSION_DATA['u_id'])) {
             //     echo jsonResponse(403, "Unauthenticated");
             //     die();
             // }
@@ -55,22 +55,27 @@ try {
                             ];
                         }
                     }
-
                     $data = [];
                     foreach ($comments as $index => $val) {
                         array_push($data, $comments[$index]);
                     }
 
-                    echo json_encode($data);
+                    echo json_encode([
+                        "message" => "โหลดคอมเมนต์สำเร็จ",
+                        "comments" => $data,
+                    ]);
                 } else {
-                    echo json_encode([]);
+                    echo json_encode([
+                        "message" => "โหลดคอมเมนต์สำเร็จ",
+                        "comments" => [],
+                    ]);
                 }
             } else {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
             }
             break;
         case "PUT": //send message
-            if (!isset($_SESSION["u_id"])) {
+            if (!isset($JWT_SESSION_DATA["u_id"])) {
                 echo jsonResponse(403, "Unauthenticated");
                 die();
             }
@@ -84,7 +89,7 @@ try {
                 echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
                 die();
             }
-            $data = ["m_sender" => $_SESSION["u_id"]];
+            $data = ["m_sender" => $JWT_SESSION_DATA["u_id"]];
             foreach (array_keys($_PUT) as $key) {
                 if ($key == "c_id") {
                     continue;
@@ -96,7 +101,7 @@ try {
                 : jsonResponse(400, "ไม่สามารถส่งข้อความได้");
             break;
         case "DELETE": //delete?
-            if (!isset($_SESSION["u_id"])) {
+            if (!isset($JWT_SESSION_DATA["u_id"])) {
                 echo jsonResponse(403, "Unauthenticated");
                 die();
             }
@@ -113,13 +118,13 @@ try {
 
             $db->where("m_id", $_DELETE["m_id"]);
             if (
-                !strcmp($m_sender, $_SESSION["u_id"]) &&
+                !strcmp($m_sender, $JWT_SESSION_DATA["u_id"]) &&
                 count($reply) > 0 &&
                 $db->update("messages", ["m_content" => "ข้อความนี้ถูกลบแล้ว"])
             ) {
                 echo jsonResponse(message: "ลบข้อความเรียบร้อย");
             } elseif (
-                !strcmp($m_sender, $_SESSION["u_id"]) &&
+                !strcmp($m_sender, $JWT_SESSION_DATA["u_id"]) &&
                 count($reply) == 0 &&
                 $db->delete("messages")
             ) {
@@ -127,7 +132,7 @@ try {
             } else {
                 echo jsonResponse(400, "ไม่สามารถลบข้อความได้");
             }
-            // echo (!strcmp($m_sender, $_SESSION['u_id']) && $count > 0 && $db->update("messages", array('m_content' => "ข้อความนี้ถูกลบแล้ว"))) ? jsonResponse(message: "ลบข้อความเรียบร้อย") : jsonResponse(400, "ไม่สามารถลบข้อความได้");
+            // echo (!strcmp($m_sender, $JWT_SESSION_DATA['u_id']) && $count > 0 && $db->update("messages", array('m_content' => "ข้อความนี้ถูกลบแล้ว"))) ? jsonResponse(message: "ลบข้อความเรียบร้อย") : jsonResponse(400, "ไม่สามารถลบข้อความได้");
             break;
     }
 } catch (Exception $e) {
