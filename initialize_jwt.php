@@ -11,13 +11,19 @@ $JWT_SESSION_DATA = [];
 $key = $_SERVER["JWT_SECRET"];
 
 function handleJWT() {
-    global $JWT_SESSION_DATA, $key;
+    global $JWT_SESSION_DATA, $key, $origin;
     // Get the Authorization header
     $authHeader = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : null;
 
     // Check if the Authorization header is present and starts with "Bearer "
-    if ($authHeader && preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-        $jwt = $matches[1];
+    if ($authHeader && preg_match('/Bearer\s(\S+)/', $authHeader, $matches) || isset($_COOKIE["access_token"])) {
+
+        // Extract the JWT from the Authorization header
+        if (isset($_COOKIE["access_token"]) && !isset($matches[1])) {
+            $jwt = $_COOKIE["access_token"];
+        } else {
+            $jwt = $matches[1];
+        }
 
         try {
             // Verify the JWT and decode it
@@ -26,8 +32,8 @@ function handleJWT() {
             $decoded_array = (array)$decoded;
 
             // Verify origin (ensure the 'aud' claim matches the current origin)
-            $origin = parse_url($_SERVER["HTTP_REFERER"] ?? ""); // Use HTTP_REFERER or other method to get origin
-            if (!isset($origin["host"]) || $decoded_array["aud"] !== $origin["host"]) {
+
+            if ((!isset($origin["host"]) || $decoded_array["aud"] !== $origin["host"]) && isset($matches[1])) {
                 throw new Exception("Invalid token origin."); // Or handle differently (e.g., log, return specific error)
             }
 
@@ -64,10 +70,9 @@ function handleJWT() {
 
 
 function createJWT($userData, $refreshToken = false) {
-    global $key;
+    global $key, $origin;
     $issuedAt = time();
     $expire = $issuedAt + ( $refreshToken ?  7 * 24 * 60 * 60 : 600); // Refresh token lasts for 7 days
-    $origin = parse_url($_SERVER["HTTP_REFERER"] ?? "");
 
     $payload = [
         'iss' => $_SERVER["HTTP_HOST"],

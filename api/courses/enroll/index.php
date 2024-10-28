@@ -31,9 +31,7 @@ try {
                 );
                 unset($enrollment[$i]["u_avatar_mime_type"]);
             }
-            echo $enrollment
-                ? json_encode($enrollment)
-                : jsonResponse(400, "ไม่เป็นสมาชิกในคอร์สนี้");
+            echo json_encode($enrollment);
             break;
         case "PUT":
             $_PUT = json_decode(file_get_contents("php://input"), true);

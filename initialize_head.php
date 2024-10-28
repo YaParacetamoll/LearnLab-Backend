@@ -24,15 +24,28 @@ function extractOriginForCors(string $url): ?array
     return ["origin" => $scheme . "://" . $host, "host" => $host]; 
 }
 
-$url = $_SERVER["HTTP_REFERER"];
-$origin = extractOriginForCors($url);
+// error_log(print_r($_SERVER, true));
+
+$url = "";
+if (isset($_SERVER["HTTP_REFERER"])) {
+    $url = $_SERVER["HTTP_REFERER"];
+} elseif (isset($_SERVER["HTTP_ORIGIN"])) {
+    $url = $_SERVER["HTTP_ORIGIN"];
+}
+
+if ($url !== "" && !is_null($url)) {
+    $origin = extractOriginForCors($url);
+} else {
+    $origin = ["origin" => "*", "host" => "*"];
+}
+
 
 if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     header("Access-Control-Allow-Origin: " . $origin["origin"]);
     header(
         "Access-Control-Allow-Methods: POST, GET, DELETE, PUT, PATCH, OPTIONS"
     );
-    header("Access-Control-Allow-Headers: token, Content-Type");
+    header("Access-Control-Allow-Headers: Authorization, Content-Type");
     header("Access-Control-Allow-Credentials: true");
     header("Access-Control-Max-Age: 1728000");
     header("Content-Length: 0");
@@ -46,5 +59,5 @@ header("Content-Type: application/json; charset=utf-8");
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->safeload();
-session_start();
+// session_start();
 ?>
