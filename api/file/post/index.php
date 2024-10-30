@@ -54,14 +54,15 @@ try {
                             200
                         );
                         // TODO : Use Cloud Front Later
-                        $s3Obj = $s3client->getObject([
+                         $s3Obj = $s3client->getObject([
                             "Bucket" => $s3bucket_post,
                             "Key" => key_exists("f_path", $file)
-                                ? $file["c_id"] .
+                                ? $s3_post_folder.
+                                $file["c_id"] .
                                     $file["f_path"] .
                                     $file["f_ident_key"] .
                                     $file["f_name"]
-                                : $file["c_id"] .
+                                : $s3_post_folder.$file["c_id"] .
                                     "/" .
                                     $file["f_ident_key"] .
                                     $file["f_name"], // ชื่อไฟล์ ,
@@ -140,11 +141,12 @@ try {
                             $s3client->putObject([
                                 "Bucket" => $s3bucket_post,
                                 "Key" =>
-                                    intval($_POST["c_id"]) .
+                                    $s3_post_folder.intval($_POST["c_id"]) .
                                     $db_fs_path .
                                     $ident_key .
                                     $name,
                                 "Body" => $blob,
+                                "ContentType" => $mime_type
                             ]);
                         } catch (Exception $e) {
                             array_push($insertError, $e);

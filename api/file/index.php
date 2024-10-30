@@ -73,11 +73,11 @@ try {
                         $s3Obj = $s3client->getObject([
                             "Bucket" => $s3bucket, // ชื่อBucket
                             "Key" => key_exists("f_path", $file)
-                                ? intval($file["c_id"]) .
+                                ? $s3_folder.intval($file["c_id"]) .
                                     $file["f_path"] .
                                     $file["f_ident_key"] .
                                     $file["f_name"]
-                                : intval($file["c_id"]) .
+                                : $s3_folder.intval($file["c_id"]) .
                                     "/" .
                                     $file["f_ident_key"] .
                                     $file["f_name"], // ชื่อไฟล์ ,
@@ -129,14 +129,15 @@ try {
                         $s3client->putObject([
                             "Bucket" => $s3bucket,
                             "Key" => key_exists("f_path", $_POST)
-                                ? intval($_POST["c_id"]) .
+                                ?  $s3_folder.intval($_POST["c_id"]) .
                                     $_POST["f_path"] .
                                     $ident_key .
                                     $_FILES["f_data"]["name"]
-                                : intval($_POST["c_id"]) .
+                                : $s3_folder.intval($_POST["c_id"]) .
                                     $ident_key .
                                     $_FILES["f_data"]["name"],
                             "Body" => $blob,
+                            "ContentType" => $mime_type
                         ]);
                     } catch (Exception $e) {
                         echo jsonResponse(500, "อัปโหลดล้มเหลว");
@@ -232,6 +233,7 @@ try {
                             $s3client->deleteObject([
                                 "Bucket" => $s3bucket,
                                 "Key" =>
+                                    $s3_folder.
                                     $JSON_DATA["c_id"] .
                                     $folder_path["f_path"] .
                                     $folder_path["f_ident_key"] .

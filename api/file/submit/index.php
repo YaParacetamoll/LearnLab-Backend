@@ -6,6 +6,7 @@ try {
     if (!isset($JWT_SESSION_DATA["u_id"])) {
         echo jsonResponse(403, "Unauthorized");
         die();
+        
     }
     switch ($_SERVER["REQUEST_METHOD"]) {
         case "GET":
@@ -57,11 +58,11 @@ try {
                         $s3Obj = $s3client->getObject([
                             "Bucket" => $s3bucket_submit,
                             "Key" => key_exists("f_path", $file)
-                                ? intval($_GET["f_id"]) .
+                                ? $s3_submit_folder.intval($_GET["f_id"]) .
                                     $file["f_path"] .
                                     $file["f_ident_key"] .
                                     $file["f_name"]
-                                : intval($_GET["f_id"]) .
+                                :  $s3_submit_folder.intval($_GET["f_id"]) .
                                     "/" .
                                     $file["f_ident_key"] .
                                     $file["f_name"], // ชื่อไฟล์ ,
@@ -133,11 +134,13 @@ try {
                             $s3client->putObject([
                                 "Bucket" => $s3bucket_submit,
                                 "Key" =>
+                                    $s3_submit_folder.
                                     intval($_POST["c_id"]) .
                                     $db_fs_path .
                                     $ident_key .
                                     $name,
                                 "Body" => $blob,
+                                "ContentType" => $mime_type
                             ]);
                         } catch (Exception $e) {
                             array_push($insertError, $e);

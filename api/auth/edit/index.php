@@ -33,7 +33,13 @@ try {
                     $imgContent = file_get_contents($image);
                     $mime_type = mime_content_type($image);
                     if (!strcmp(explode("/", $mime_type)[0], "image")) {
-                        $data["u_avatar"] = $imgContent;
+                        //$data["u_avatar"] = $imgContent;
+                        $s3client->putObject([
+                            "Bucket" => $s3bucket_avatar,
+                            "Key" => $s3_avatar_folder.intval($JWT_SESSION_DATA["u_id"]),
+                            "Body" => $imgContent,
+                            "ContentType" => $mime_type
+                        ]);
                         $data["u_avatar_mime_type"] = $mime_type;
                     }
                 }

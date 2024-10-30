@@ -120,16 +120,33 @@ try {
                     $_FILES["c_banner"]["error"] == 0
                 ) {
                     $image = $_FILES["c_banner"]["tmp_name"];
-                    $imgContent = file_get_contents($image);
+                    //$imgContent = file_get_contents($image);
                     $mime_type = mime_content_type($image);
                     if (!strcmp(explode("/", $mime_type)[0], "image")) {
-                        $data["c_banner"] = $imgContent;
+                        //$data["c_banner"] = $imgContent;
                         $data["c_banner_mime_type"] = $mime_type;
                     }
                 }
                 if ($db->insert("courses", $data)) {
                     $db->where("c_name", $_POST["c_name"]);
                     $c_id = $db->getValue("courses", "c_id");
+                    if (
+                        isset($_FILES["c_banner"]) &&
+                        $_FILES["c_banner"]["error"] == 0
+                    ) {
+                        $image = $_FILES["c_banner"]["tmp_name"];
+                        $imgContent = file_get_contents($image);
+                        $mime_type = mime_content_type($image);
+                        if (!strcmp(explode("/", $mime_type)[0], "image")) {
+                            //$data["c_banner"] = $imgContent;
+                            $s3client->putObject([
+                                "Bucket" => $s3bucket_banner,
+                                "Key" => $s3_banner_folder.intval($c_id),
+                                "Body" => $imgContent,
+                                "ContentType" => $mime_type
+                            ]);
+                        }
+                    }
                     $enroll_data = [
                         "c_id" => $c_id,
                         "u_id" => intval($JWT_SESSION_DATA["u_id"]),

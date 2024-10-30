@@ -9,11 +9,19 @@ try {
                 $db->where("c_id", intval($_GET["c_id"]));
                 $banner = $db->getOne(
                     "courses",
-                    "c_banner, c_banner_mime_type"
+                    "c_banner_mime_type"
                 );
-                if (!is_null($banner["c_banner"])) {
+                $s3Obj = $s3client->getObject([
+                    "Bucket" => $s3bucket_banner, // ชื่อBucket
+                    "Key" => $s3_banner_folder.intval($_GET["c_id"])
+                ]);
+                $res = $s3Obj->get("Body");
+                $res->rewind();
+                $res;
+                if (!is_null($res)) {
                     header("Content-type: " . $banner["c_banner_mime_type"]);
-                    echo $banner["c_banner"];
+                    echo $res;//$banner["c_banner"];
+                    exit();
                 } else {
                     echo jsonResponse(404, "No image here");
                 }
