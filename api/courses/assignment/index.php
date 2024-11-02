@@ -21,9 +21,11 @@ try {
                 );
                 $assignment = $db->getOne("assignments a");
                 $assignment["a_files"] = json_decode($assignment["a_files"]);
-                $assignment["s_content"] = json_decode(
-                    $assignment["s_content"]
-                );
+                if (!is_null($assignment["s_content"])) {
+                    $assignment["s_content"] = json_decode(
+                        $assignment["s_content"]
+                    );
+                }
                 if (count($assignment["a_files"]) > 0) {
                     $db->where("f_id", $assignment["a_files"], "IN");
                     $db->orderBy("f_name", "asc");
