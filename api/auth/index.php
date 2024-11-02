@@ -15,7 +15,7 @@ try {
                 } elseif (isset($_GET["image"])) {
                     $user = $db->getOne(
                         "users",
-                        "u_avatar, u_avatar_mime_type"
+                        "u_avatar_mime_type"
                     );
                     $s3Obj = $s3client->getObject([
                         "Bucket" => $s3bucket_avatar,
@@ -26,7 +26,13 @@ try {
                     $user["u_avatar"] = $res;
                 }
                 if (isset($user["u_avatar"]) && !is_null($user["u_avatar"])) {
-                    $user["u_avatar"] = base64_encode($user["u_avatar"]);
+                    if (isset($_GET["get-raw"])) {
+                        header("Content-type: " . $user["u_avatar_mime_type"]);
+                        echo $user["u_avatar"];
+                        exit();
+                    } else {
+                        $user["u_avatar"] = base64_encode($user["u_avatar"]);
+                    }
                 }
 
                 echo json_encode($user);
@@ -63,17 +69,19 @@ try {
                     $_FILES["u_avatar"]["error"] == 0
                 ) {
                     $image = $_FILES["u_avatar"]["tmp_name"];
-                    $imgContent = file_get_contents($image);
+                    // $imgContent = file_get_contents($image);
                     $mime_type = mime_content_type($image);
                     if (!strcmp(explode("/", $mime_type)[0], "image")) {
                         //$data["u_avatar"] = $imgContent;
+                        $webpImage = convertToWebP($image, 80, 'Profile');
+
                         $s3client->putObject([
                             "Bucket" => $s3bucket_avatar,
                             "Key" => $s3_avatar_folder.intval($_GET["u_id"]),
-                            "Body" => $imgContent,
-                            "ContentType" => $mime_type
+                            "Body" => $webpImage,
+                            "ContentType" => "image/webp"
                         ]);
-                        $data["u_avatar_mime_type"] = $mime_type;
+                        $data["u_avatar_mime_type"] = "image/webp";
                     }
                 }
                 $id = $db->insert("users", $data);
@@ -82,7 +90,7 @@ try {
                         message: "User was created successfully! Id = " . $id
                     );
                 } else {
-                    echo jsonResponse(400, "Fail to create user.");
+                    echo jsonResponse(400, "Unable to create user.");
                 }
             } else {
                 jsonResponse(400, "Invalid input");

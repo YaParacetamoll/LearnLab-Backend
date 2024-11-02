@@ -7,19 +7,16 @@ try {
             if (isset($_GET["u_id"])) {
                 // if requested with 'image' query it will return image base64 encoded blob with mime type
                 $db->where("u_id", intval($_GET["u_id"]));
-                $user = $db->getOne("users", "u_avatar, u_avatar_mime_type");
+                $user = $db->getOne("users", "u_avatar_mime_type");
                 if ($user) {
-                    header("Content-type: " . $user["u_avatar_mime_type"]);
-
-                    $s3Obj = $s3client->getObject([
+                    $cmd = $s3client->getCommand('GetObject',[
                         "Bucket" => $s3bucket_avatar,
-                        "Key" => $s3_avatar_folder.intval($_GET["u_id"])
+                        "Key" => $s3_avatar_folder . intval($_GET["u_id"])
                     ]);
-                    $res = $s3Obj->get("Body");
-                    $res->rewind();
-                    echo $res;
+                    $request = $s3client->createPresignedRequest($cmd, '+10 minute');
+                    $presignedUrl = (string)$request->getUri();
+                    header("Location: " . $presignedUrl);
                     exit();
-                    //echo $user["u_avatar"];
                 } else {
                     echo jsonResponse(404, "No image here");
                 }

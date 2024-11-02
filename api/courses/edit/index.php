@@ -44,17 +44,20 @@ try {
 
             ) {
                 $image = $_FILES["c_banner"]["tmp_name"];
-                $imgContent = file_get_contents($image);
+
+                $webpImage = convertToWebP($image, 80, 'Banner');
+
+                // $imgContent = file_get_contents($image);
                 $mime_type = mime_content_type($image);
                 if (!strcmp(explode("/", $mime_type)[0], "image")) {
                     //$data["c_banner"] = $imgContent;
                     $s3client->putObject([
                         "Bucket" => $s3bucket_banner,
                         "Key" => $s3_banner_folder.intval($_POST["c_id"]),
-                        "Body" => $imgContent,
-                        "ContentType" => $mime_type
+                        "Body" => $webpImage,
+                        "ContentType" => "image/webp",
                     ]);
-                    $data["c_banner_mime_type"] = $mime_type;
+                    $data["c_banner_mime_type"] = "image/webp";
                 }
             }
             $db->where("c_id", $_POST["c_id"]);

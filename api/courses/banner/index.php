@@ -7,31 +7,30 @@ try {
         case "GET":
             if (isset($_GET["c_id"])) {
                 $db->where("c_id", intval($_GET["c_id"]));
-                $banner = $db->getOne(
-                    "courses",
-                    "c_banner_mime_type"
-                );
-                $s3Obj = $s3client->getObject([
-                    "Bucket" => $s3bucket_banner, // ชื่อBucket
-                    "Key" => $s3_banner_folder.intval($_GET["c_id"])
-                ]);
-                $res = $s3Obj->get("Body");
-                $res->rewind();
-                $res;
-                if (!is_null($res)) {
-                    header("Content-type: " . $banner["c_banner_mime_type"]);
-                    echo $res;//$banner["c_banner"];
+                $banner = $db->getOne("courses", "c_banner_mime_type");
+
+                if ($banner) { // Check if a banner record exists
+                    $cmd = $s3client->getCommand('GetObject', [
+                        'Bucket' => $s3bucket_banner,
+                        'Key' => $s3_banner_folder . intval($_GET["c_id"])
+                    ]);
+
+                    $request = $s3client->createPresignedRequest($cmd, '+10 minute');
+                    $presignedUrl = (string)$request->getUri();
+
+                    header("Location: " . $presignedUrl);
                     exit();
                 } else {
-                    echo jsonResponse(404, "No image here");
+                    echo jsonResponse(404, "No banner found for this course.");
                 }
+
             } else {
-                echo jsonResponse(400, "ค่าที่ให้มาไม่ครบหรือไม่ถูกต้อง");
+                echo jsonResponse(400, "Missing or invalid parameters.");
             }
             break;
         default:
-            echo jsonResponse(405, "ไม่อนุญาตให้ใช้ Method นี้");
+            echo jsonResponse(405, "Method Not Allowed");
     }
 } catch (Exception $e) {
-    echo jsonResponse(500, $e->getMessage());
+    echo jsonResponse(500, $e->getMessage()); // Log this error for debugging!
 }
