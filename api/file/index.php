@@ -57,21 +57,24 @@ try {
                     exit();
                 } elseif ($file && is_null($file["f_data"])) {
                     try {
-                        header(
-                            'Content-Disposition: filename="' .
-                                $file["f_name"] .
-                                '"',
-                            true,
-                            200
-                        );
-                        header(
-                            "Content-type: " . $file["f_mime_type"],
-                            true,
-                            200
-                        );
-                        // TODO : Use Cloud Front Later
-                        $s3Obj = $s3client->getObject([
-                            "Bucket" => $s3bucket, // ชื่อBucket
+
+                        // $s3Obj = $s3client->getObject([
+                        //     "Bucket" => $s3bucket, // ชื่อBucket
+                        //     "Key" => key_exists("f_path", $file)
+                        //         ? $s3_folder.intval($file["c_id"]) .
+                        //             $file["f_path"] .
+                        //             $file["f_ident_key"] .
+                        //             $file["f_name"]
+                        //         : $s3_folder.intval($file["c_id"]) .
+                        //             "/" .
+                        //             $file["f_ident_key"] .
+                        //             $file["f_name"], // ชื่อไฟล์ ,
+                        // ]);
+                        // $res = $s3Obj->get("Body");
+                        // $res->rewind();
+
+                        $cmd = $s3client->getCommand("GetObject", [
+                            "Bucket" => $s3bucket,
                             "Key" => key_exists("f_path", $file)
                                 ? $s3_folder.intval($file["c_id"]) .
                                     $file["f_path"] .
@@ -80,11 +83,12 @@ try {
                                 : $s3_folder.intval($file["c_id"]) .
                                     "/" .
                                     $file["f_ident_key"] .
-                                    $file["f_name"], // ชื่อไฟล์ ,
+                                    $file["f_name"],
                         ]);
-                        $res = $s3Obj->get("Body");
-                        $res->rewind();
-                        echo $res;
+                        $request = $s3client->createPresignedRequest($cmd, '+10 minute');
+                        $presignedUrl = (string)$request->getUri();
+                        header("Location: " . $presignedUrl);
+                        // echo $res;
                         exit();
                     } catch (Exception $e) {
                         header(
