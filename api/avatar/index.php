@@ -9,14 +9,24 @@ try {
                 $db->where("u_id", intval($_GET["u_id"]));
                 $user = $db->getOne("users", "u_avatar_mime_type");
                 if ($user) {
-                    $cmd = $s3client->getCommand('GetObject',[
-                        "Bucket" => $s3bucket_avatar,
-                        "Key" => $s3_avatar_folder . intval($_GET["u_id"])
-                    ]);
-                    $request = $s3client->createPresignedRequest($cmd, '+10 minute');
-                    $presignedUrl = (string)$request->getUri();
-                    header("Location: " . $presignedUrl);
-                    exit();
+                    try {
+                        // Check if object exists first
+                        $exists = $s3client->doesObjectExist($s3bucket_avatar, $s3_avatar_folder . intval($_GET["u_id"]));
+                        if ($exists) {
+                            $cmd = $s3client->getCommand('GetObject',[
+                                "Bucket" => $s3bucket_avatar,
+                                "Key" => $s3_avatar_folder . intval($_GET["u_id"])
+                            ]);
+                            $request = $s3client->createPresignedRequest($cmd, '+10 minute');
+                            $presignedUrl = (string)$request->getUri();
+                            header("Location: " . $presignedUrl);
+                            exit();
+                        } else {
+                            echo jsonResponse(404, "ไม่พบรูปภาพ");
+                        }
+                    } catch (Exception $e) {
+                        echo jsonResponse(500, "Error checking image: " . $e->getMessage());
+                    }
                 } else {
                     echo jsonResponse(404, "No image here");
                 }

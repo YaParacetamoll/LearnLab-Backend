@@ -27,8 +27,12 @@ try {
                 }
                 if (isset($user["u_avatar"]) && !is_null($user["u_avatar"])) {
                     if (isset($_GET["get-raw"])) {
-                        header("Content-type: " . $user["u_avatar_mime_type"]);
-                        echo $user["u_avatar"];
+                        if (isset($user["u_avatar_mime_type"])) {
+                            header("Content-type: " . $user["u_avatar_mime_type"]);
+                            echo $user["u_avatar"];
+                        } else {
+                            http_response_code(404);
+                        }
                         exit();
                     } else {
                         $user["u_avatar"] = base64_encode($user["u_avatar"]);

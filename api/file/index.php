@@ -57,38 +57,36 @@ try {
                     exit();
                 } elseif ($file && is_null($file["f_data"])) {
                     try {
+                        $objectKey = key_exists("f_path", $file)
+                            ? $s3_folder.intval($file["c_id"]) .
+                                $file["f_path"] .
+                                $file["f_ident_key"] .
+                                $file["f_name"]
+                            : $s3_folder.intval($file["c_id"]) .
+                                "/" .
+                                $file["f_ident_key"] .
+                                $file["f_name"];
 
-                        // $s3Obj = $s3client->getObject([
-                        //     "Bucket" => $s3bucket, // ชื่อBucket
-                        //     "Key" => key_exists("f_path", $file)
-                        //         ? $s3_folder.intval($file["c_id"]) .
-                        //             $file["f_path"] .
-                        //             $file["f_ident_key"] .
-                        //             $file["f_name"]
-                        //         : $s3_folder.intval($file["c_id"]) .
-                        //             "/" .
-                        //             $file["f_ident_key"] .
-                        //             $file["f_name"], // ชื่อไฟล์ ,
-                        // ]);
-                        // $res = $s3Obj->get("Body");
-                        // $res->rewind();
+                        // Check if object exists in bucket
+                        if (!$s3client->doesObjectExist($s3bucket, $objectKey)) {
+                            echo jsonResponse(404, "File not found in storage");
+                            exit();
+                        }
 
                         $cmd = $s3client->getCommand("GetObject", [
                             "Bucket" => $s3bucket,
-                            "Key" => key_exists("f_path", $file)
-                                ? $s3_folder.intval($file["c_id"]) .
-                                    $file["f_path"] .
-                                    $file["f_ident_key"] .
-                                    $file["f_name"]
-                                : $s3_folder.intval($file["c_id"]) .
-                                    "/" .
-                                    $file["f_ident_key"] .
-                                    $file["f_name"],
+                            "Key" => $objectKey,
+                            "ResponseContentDisposition" => 'attachment; filename="' . $file["f_name"] . '"'
                         ]);
                         $request = $s3client->createPresignedRequest($cmd, '+10 minute');
                         $presignedUrl = (string)$request->getUri();
+
+                        if (isset($_GET["get-presigned"])) {
+                            echo jsonResponse(200, $presignedUrl);
+                            exit();
+                        }
+
                         header("Location: " . $presignedUrl);
-                        // echo $res;
                         exit();
                     } catch (Exception $e) {
                         header(

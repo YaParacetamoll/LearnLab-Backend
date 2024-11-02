@@ -10,16 +10,26 @@ try {
                 $banner = $db->getOne("courses", "c_banner_mime_type");
 
                 if ($banner) { // Check if a banner record exists
-                    $cmd = $s3client->getCommand('GetObject', [
-                        'Bucket' => $s3bucket_banner,
-                        'Key' => $s3_banner_folder . intval($_GET["c_id"])
-                    ]);
+                    // Check if the object exists in S3
+                    $objectExists = $s3client->doesObjectExist(
+                        $s3bucket_banner,
+                        $s3_banner_folder . intval($_GET["c_id"])
+                    );
 
-                    $request = $s3client->createPresignedRequest($cmd, '+10 minute');
-                    $presignedUrl = (string)$request->getUri();
+                    if ($objectExists) {
+                        $cmd = $s3client->getCommand('GetObject', [
+                            'Bucket' => $s3bucket_banner,
+                            'Key' => $s3_banner_folder . intval($_GET["c_id"])
+                        ]);
 
-                    header("Location: " . $presignedUrl);
-                    exit();
+                        $request = $s3client->createPresignedRequest($cmd, '+10 minute');
+                        $presignedUrl = (string)$request->getUri();
+
+                        header("Location: " . $presignedUrl);
+                        exit();
+                    } else {
+                        echo jsonResponse(404, "Banner file not found in storage.");
+                    }
                 } else {
                     echo jsonResponse(404, "No banner found for this course.");
                 }
