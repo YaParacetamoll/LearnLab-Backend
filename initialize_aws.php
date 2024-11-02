@@ -27,11 +27,11 @@ try {
         "credentials" => $provider,
     ]);
 
-    $s3bucket = "learnlab-a";
-    $s3bucket_post = "learnlab-a";
-    $s3bucket_submit = "learnlab-a";
-    $s3bucket_avatar = "learnlab-a";
-    $s3bucket_banner =  "learnlab-a";
+    $s3bucket = "learnlab-65070242";
+    $s3bucket_post = $s3bucket;
+    $s3bucket_submit = $s3bucket;
+    $s3bucket_avatar = $s3bucket;
+    $s3bucket_banner =  $s3bucket;
 
     $s3_folder = "courses/";
     $s3_post_folder = "courses/";
@@ -41,4 +41,14 @@ try {
 
 } catch (S3Exception $e) {
     echo jsonResponse("500", $e->getMessage());
+}
+
+function getS3PreSignedUrl($client,string $bucket,string $key, $expire = new DateTime("+10 minutes")){
+    $command = $client->getCommand('GetObject', [
+        'Bucket' => $bucket,
+        "Key" => $key
+    ]);
+    $reqPreSignedUrl = $client->createPresignedRequest($command, $expire);
+    $presignedUrl = (string)$reqPreSignedUrl->getUri();
+    return $presignedUrl ;
 }

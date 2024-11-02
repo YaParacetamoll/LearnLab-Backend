@@ -9,17 +9,20 @@ try {
                 $db->where("u_id", intval($_GET["u_id"]));
                 $user = $db->getOne("users", "u_avatar, u_avatar_mime_type");
                 if ($user) {
-                    header("Content-type: " . $user["u_avatar_mime_type"]);
-
-                    $s3Obj = $s3client->getObject([
-                        "Bucket" => $s3bucket_avatar,
-                        "Key" => $s3_avatar_folder.intval($_GET["u_id"])
-                    ]);
-                    $res = $s3Obj->get("Body");
-                    $res->rewind();
-                    echo $res;
+                    //header("Content-type: " . $user["u_avatar_mime_type"]);
+                    try {
+                        $presignedUrl = getS3PreSignedUrl(
+                            $s3client,
+                            $s3bucket_avatar,
+                            $s3_avatar_folder.intval($_GET["u_id"])
+                        );
+                        header("Location: " . $presignedUrl, true);
+                        exit();
+                    } catch (Exception $exception) {
+                        echo jsonResponse(500, "can not create presigned url");
+                        die();
+                    }
                     exit();
-                    //echo $user["u_avatar"];
                 } else {
                     echo jsonResponse(404, "No image here");
                 }

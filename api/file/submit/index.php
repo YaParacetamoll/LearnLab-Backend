@@ -55,9 +55,11 @@ try {
                             200
                         );
                         // TODO : Use Cloud Front Later
-                        $s3Obj = $s3client->getObject([
-                            "Bucket" => $s3bucket_submit,
-                            "Key" => key_exists("f_path", $file)
+                        try {
+                            $presignedUrl = getS3PreSignedUrl(
+                                $s3client,
+                                $ $s3bucket_submit,
+                                key_exists("f_path", $file)
                                 ? $s3_submit_folder.intval($_GET["f_id"]) .
                                     $file["f_path"] .
                                     $file["f_ident_key"] .
@@ -65,11 +67,15 @@ try {
                                 :  $s3_submit_folder.intval($_GET["f_id"]) .
                                     "/" .
                                     $file["f_ident_key"] .
-                                    $file["f_name"], // ชื่อไฟล์ ,
-                        ]);
-                        $res = $s3Obj->get("Body");
-                        $res->rewind();
-                        echo $res;
+                                    $file["f_name"]
+                            );
+                            header("Location: " . $presignedUrl, true);
+                            exit();
+                        } catch (Exception $exception) {
+                            echo jsonResponse(500, "can not create presigned url");
+                            die();
+                        }
+                      
                         exit();
                     } catch (Exception $e) {
                         header(

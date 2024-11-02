@@ -41,22 +41,12 @@ try {
                     echo $file["f_data"];
                 } elseif ($file && is_null($file["f_data"])) {
                     try {
-                        header(
-                            'Content-Disposition: filename="' .
-                                $file["f_name"] .
-                                '"',
-                            true,
-                            200
-                        );
-                        header(
-                            "Content-type: " . $file["f_mime_type"],
-                            true,
-                            200
-                        );
                         // TODO : Use Cloud Front Later
-                         $s3Obj = $s3client->getObject([
-                            "Bucket" => $s3bucket_post,
-                            "Key" => key_exists("f_path", $file)
+                        try {
+                            $presignedUrl = getS3PreSignedUrl(
+                                $s3client,
+                                $s3bucket_post,
+                                key_exists("f_path", $file)
                                 ? $s3_post_folder.
                                 $file["c_id"] .
                                     $file["f_path"] .
@@ -65,11 +55,15 @@ try {
                                 : $s3_post_folder.$file["c_id"] .
                                     "/" .
                                     $file["f_ident_key"] .
-                                    $file["f_name"], // ชื่อไฟล์ ,
-                        ]);
-                        $res = $s3Obj->get("Body");
-                        $res->rewind();
-                        echo $res;
+                                    $file["f_name"]
+                            );
+                            header("Location: " . $presignedUrl, true);
+                            exit();
+                        } catch (Exception $exception) {
+                            echo jsonResponse(500, "can not create presigned url");
+                            die();
+                        }
+                       
                         exit();
                     } catch (Exception $e) {
                         header(

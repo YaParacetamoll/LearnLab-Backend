@@ -11,14 +11,18 @@ try {
                     "courses",
                     "c_banner_mime_type"
                 );
-                $s3Obj = $s3client->getObject([
-                    "Bucket" => $s3bucket_banner, // ชื่อBucket
-                    "Key" => $s3_banner_folder.intval($_GET["c_id"])
-                ]);
-                $res = $s3Obj->get("Body");
-                $res->rewind();
-                $res;
-                if (!is_null($res)) {
+                try {
+                    $presignedUrl = getS3PreSignedUrl(
+                        $s3client,
+                        $s3bucket_banner,
+                        $s3_banner_folder.intval($_GET["c_id"])
+                    );
+                    header("Location: " . $presignedUrl, true);
+                    exit();
+                } catch (Exception $exception) {
+                   
+                }
+                if (!is_null($banner["c_banner_mime_type"])) {
                     header("Content-type: " . $banner["c_banner_mime_type"]);
                     echo $res;//$banner["c_banner"];
                     exit();

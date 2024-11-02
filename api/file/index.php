@@ -57,34 +57,26 @@ try {
                     exit();
                 } elseif ($file && is_null($file["f_data"])) {
                     try {
-                        header(
-                            'Content-Disposition: filename="' .
-                                $file["f_name"] .
-                                '"',
-                            true,
-                            200
-                        );
-                        header(
-                            "Content-type: " . $file["f_mime_type"],
-                            true,
-                            200
-                        );
-                        // TODO : Use Cloud Front Later
-                        $s3Obj = $s3client->getObject([
-                            "Bucket" => $s3bucket, // ชื่อBucket
-                            "Key" => key_exists("f_path", $file)
-                                ? $s3_folder.intval($file["c_id"]) .
+                        try {
+                            $presignedUrl = getS3PreSignedUrl(
+                                $s3client,
+                                $s3bucket,
+                                key_exists("f_path", $file)
+                                    ? $s3_folder . intval($file["c_id"]) .
                                     $file["f_path"] .
                                     $file["f_ident_key"] .
                                     $file["f_name"]
-                                : $s3_folder.intval($file["c_id"]) .
+                                    : $s3_folder . intval($file["c_id"]) .
                                     "/" .
                                     $file["f_ident_key"] .
-                                    $file["f_name"], // ชื่อไฟล์ ,
-                        ]);
-                        $res = $s3Obj->get("Body");
-                        $res->rewind();
-                        echo $res;
+                                    $file["f_name"]
+                            );
+                            header("Location: " . $presignedUrl, true);
+                            exit();
+                        } catch (Exception $exception) {
+                            echo jsonResponse(500, "can not create presigned url");
+                            die();
+                        }
                         exit();
                     } catch (Exception $e) {
                         header(
@@ -129,13 +121,13 @@ try {
                         $s3client->putObject([
                             "Bucket" => $s3bucket,
                             "Key" => key_exists("f_path", $_POST)
-                                ?  $s3_folder.intval($_POST["c_id"]) .
-                                    $_POST["f_path"] .
-                                    $ident_key .
-                                    $_FILES["f_data"]["name"]
-                                : $s3_folder.intval($_POST["c_id"]) .
-                                    $ident_key .
-                                    $_FILES["f_data"]["name"],
+                                ?  $s3_folder . intval($_POST["c_id"]) .
+                                $_POST["f_path"] .
+                                $ident_key .
+                                $_FILES["f_data"]["name"]
+                                : $s3_folder . intval($_POST["c_id"]) .
+                                $ident_key .
+                                $_FILES["f_data"]["name"],
                             "Body" => $blob,
                             "ContentType" => $mime_type
                         ]);
@@ -233,7 +225,7 @@ try {
                             $s3client->deleteObject([
                                 "Bucket" => $s3bucket,
                                 "Key" =>
-                                    $s3_folder.
+                                $s3_folder .
                                     $JSON_DATA["c_id"] .
                                     $folder_path["f_path"] .
                                     $folder_path["f_ident_key"] .
