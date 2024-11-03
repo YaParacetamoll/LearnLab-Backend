@@ -10,12 +10,14 @@ try {
     $path = __DIR__ . "/aws_credentials.ini";
 
     // If Use .ini File
-    $provider = CredentialProvider::ini($profile, $path);
+    // $provider = CredentialProvider::ini($profile, $path);
 
     // If Use EC2 With Set IAM Role
-    /*$provider = CredentialProvider::instanceProfile([
-        'retries' => 0
-        ]);*/
+    //$provider = CredentialProvider::instanceProfile([
+    //   'retries' => 0
+    //  ]);
+
+    $provider = CredentialProvider::defaultProvider();
 
     $provider = CredentialProvider::memoize($provider);
 

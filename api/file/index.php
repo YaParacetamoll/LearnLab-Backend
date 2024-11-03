@@ -44,7 +44,7 @@ try {
                 $db->where("f_id", intval($_GET["f_id"]));
                 $file = $db->getOne(
                     "files",
-                    "f_data, f_name, f_mime_type, f_path, f_ident_key, c_id"
+                    "f_name, f_mime_type, f_path, f_ident_key, c_id"
                 );
                 if ($file && !is_null($file["f_data"])) {
                     header(

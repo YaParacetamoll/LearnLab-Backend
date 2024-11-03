@@ -22,7 +22,8 @@ try {
                             header("Location: " . $presignedUrl);
                             exit();
                         } else {
-                            echo jsonResponse(404, "ไม่พบรูปภาพ");
+                            http_response_code(404);
+                            exit();
                         }
                     } catch (Exception $e) {
                         echo jsonResponse(500, "Error checking image: " . $e->getMessage());
